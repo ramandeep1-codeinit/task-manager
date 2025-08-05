@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import connect from "./utils/db.utils.js";
 import express from 'express';
+import userRoutes from './routes/user.routes.js';
 
 dotenv.config({path: './config.env'});
 
@@ -10,6 +11,9 @@ const app = express();
 //     res.send("hello worlds");
 // })
 app.use(express.json());
+
+app.use("/api/users", userRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 
