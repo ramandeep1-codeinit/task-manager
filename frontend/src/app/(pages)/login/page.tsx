@@ -5,12 +5,31 @@ import Link from 'next/link'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { useAuth } from '@/context/AuthContext'
+import { useState } from 'react'
 
 export default function LoginPage() {
+
+  const { login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    try {
+      await login(email, password);
+    } catch (err) {
+      setError('Invalid email or password');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f5f8fc] flex items-center justify-center">
       <div className="max-w-6xl w-full h-[70vh] bg-white shadow-xl rounded-2xl overflow-hidden flex flex-col md:flex-row">
-        
+
         {/* Left Section */}
         <div className="w-full md:w-1/2 p-10 flex flex-col justify-center space-y-6">
           <h2 className="text-3xl font-bold text-gray-900">Create your <br /> <span className="text-[#1E2D70]">workplace</span></h2>
@@ -18,9 +37,32 @@ export default function LoginPage() {
             If you don’t have an account <Link href="/register" className="text-[#1E2D70] underline">register here</Link>
           </p> */}
 
-          <form className="space-y-4">
-            <Input type="email" placeholder="Email" className="bg-gray-100" />
-            <Input type="password" placeholder="Password" className="bg-gray-100" />
+
+          {error && (
+            <div className="text-red-600 text-sm bg-red-100 p-2 rounded">
+              {error}
+            </div>
+          )}
+
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              type="email"
+              placeholder="Email"
+              className="bg-gray-100"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+
+            <Input
+              type="password"
+              placeholder="Password"
+              className="bg-gray-100"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
 
             <Button type="submit" className="w-full bg-gradient-to-r from-[#7B61FF] to-[#9A63F8] text-white">
               Sign In
