@@ -1,5 +1,7 @@
-const Task = require('../models/Task'); 
-const { taskValidationSchema } = require('../validations/taskValidation');
+
+import Task from '../models/task.model.js';
+import { taskValidationSchema } from '../schema/task.schema.js';
+
 
 export const createTask = async (req, res) => {
   const { error } = taskValidationSchema.validate(req.body);

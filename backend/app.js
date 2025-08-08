@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import connect from "./utils/db.utils.js";
 import express from 'express';
 import userRoutes from './routes/user.routes.js';
+import taskRoutes from './routes/task.routes.js';
 import cors from 'cors';
 
 dotenv.config({path: './config.env'});
@@ -29,6 +30,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/api/users", userRoutes);
+app.use("/api/users", taskRoutes);
 
 
 const PORT = process.env.PORT || 5000;

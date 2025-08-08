@@ -18,6 +18,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
+import AddTaskDialog from "@/components/dialogbox";
 
 
 const tasks = [
@@ -77,12 +79,16 @@ const getStatusColor = (status: string) => {
 };
 
 export default function Dashboard() {
+
+      const [open, setOpen] = useState(false)
+
     return (
         <div className="min-h-screen bg-white p-4 md:p-8">
+             <AddTaskDialog open={open} setOpen={setOpen} />
             <Card className="shadow-lg">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="text-xl md:text-2xl font-bold">Task List</CardTitle>
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setOpen(true)}>
                         <Plus className="mr-2 h-4 w-4" /> Add Task
                     </Button>
                 </CardHeader>
