@@ -11,28 +11,57 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
+import { useTask } from "@/context/TaskContext";
 
 interface Props {
-  open: boolean
-  setOpen: (open: boolean) => void
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  onSubmit: (task: any) => Promise<void>;
 }
 
-export default function AddTaskDialog({ open, setOpen }: Props) {
-  
-  
-  const [taskTitle, setTaskTitle] = useState("");
-  const [taskDesc, setTaskDesc] = useState("");
+interface TaskFormData {
+  userName: string;
+  project: string;
+  taskDetail: string;
+  status: string;
+  userId: string;
+}
 
-  const handleAddTask = () => {
-    console.log("Task Title:", taskTitle);
-    console.log("Task Description:", taskDesc);
-    setTaskTitle("");
-    setTaskDesc("");
+export default function AddTaskDialog({ open, setOpen, onSubmit }: Props) {
+  // const { createTask } = useTask();
+
+  const [formData, setFormData] = useState<TaskFormData>({
+    userName: "",
+    project: "",
+    taskDetail: "",
+    status: "pending",
+    userId: "",
+  });
+  console.log(formData, "data");
+  const handleChange = (name: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await onSubmit(formData);
+    setFormData({
+      userName: "",
+      project: "",
+      taskDetail: "",
+      status: "pending",
+      userId: "66b2b2f3c5a123456789abcd",
+    });
+    setOpen(false);
+
+    console.log(formData, "form data");
   };
 
   return (
-    <Dialog  open={open} onOpenChange={setOpen} >
+    <Dialog open={open} onOpenChange={setOpen}>
       {/* <DialogTrigger asChild>
         <Button className="bg-primary text-white">Add Task</Button>
       </DialogTrigger> */}
@@ -50,8 +79,8 @@ export default function AddTaskDialog({ open, setOpen }: Props) {
             </Label>
             <Input
               id="title"
-              value={taskTitle}
-              onChange={(e) => setTaskTitle(e.target.value)}
+              value={formData.project}
+              onChange={(e) => handleChange("project", e.target.value)}
               className="col-span-3"
               placeholder="Enter task title"
             />
@@ -62,15 +91,15 @@ export default function AddTaskDialog({ open, setOpen }: Props) {
             </Label>
             <Input
               id="desc"
-              value={taskDesc}
-              onChange={(e) => setTaskDesc(e.target.value)}
+              value={formData.taskDetail}
+              onChange={(e) => handleChange("taskDetail", e.target.value)}
               className="col-span-3"
               placeholder="Enter task description"
             />
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleAddTask} className="bg-primary text-white">
+          <Button onClick={handleSubmit} className="bg-primary text-white">
             Save Task
           </Button>
         </DialogFooter>
