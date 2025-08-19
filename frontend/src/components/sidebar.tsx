@@ -11,7 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function Sidebar() {
 
-    const { user } = useAuth(); // Assuming you have a useAuth hook to get user info
+    const { user , logout } = useAuth(); // Assuming you have a useAuth hook to get user info
    console.log("User in Sidebar:", user);
   const menuItems = [
     { name: "Dashboard", href: "/", icon: Home },
@@ -94,7 +94,7 @@ export default function Sidebar() {
             <p className="text-sm font-medium">{user?.email}</p>
             <p className="text-xs text-muted-foreground">{(user?.role == "1" ? "Manager" : "Employee")}</p>
           </div>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={logout} >
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
