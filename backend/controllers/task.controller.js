@@ -23,6 +23,47 @@ export async function addTask(req, res) {
   }
 }
 
+// UPDATE Task
+export async function updateTask(req, res) {
+  try {
+    const { id } = req.params; // taskId from URL
+    const { userName, project, taskDetail, status } = req.body;
+
+    const updatedTask = await Task.findByIdAndUpdate(
+      id,
+      { userName, project, taskDetail, status },
+      { new: true } // returns updated document
+    );
+
+    if (!updatedTask) {
+      return res.status(404).json({ success: false, message: "Task not found" });
+    }
+
+    res.status(200).json({ success: true, data: updatedTask });
+  } catch (error) {
+    console.error("Update Task Error:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+// DELETE Task
+export async function deleteTask(req, res) {
+  try {
+    const { id } = req.params; // taskId from URL
+
+    const deletedTask = await Task.findByIdAndDelete(id);
+
+    if (!deletedTask) {
+      return res.status(404).json({ success: false, message: "Task not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Task deleted successfully" });
+  } catch (error) {
+    console.error("Delete Task Error:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
 export async function getAllTasks(req, res) {
   try {
     const tasks = await Task.find(); // Fetch all tasks from DB

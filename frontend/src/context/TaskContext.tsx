@@ -7,14 +7,15 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 
 interface Task {
   id?: string;
-  userName: string;
-  title: string;
-  description: string;
+  project: string;
+  taskDetail: string;
+  status: string;
 }
 
 interface TaskContextType {
   tasks: Task[];
   createTask: (taskData: Omit<Task, "id">) => Promise<void>;
+  getTasks: (role: string, userId?: string) => Promise<void>;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -23,6 +24,23 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
+
+   const getTasks = async (role: string, userId?: string) => {
+    try {
+      let res;
+      if (role == "1") {    // Assuming '1' is the role for manager
+        // Manager can see all tasks
+        res = await api.get("/task/all");
+      } else {
+        // Normal user can see only their tasks
+        res = await api.get(`/tasks/${userId}`);
+      }
+
+      setTasks(res.data.data || res.data); // adjust based on backend response
+    } catch (err) {
+      console.error("Error fetching tasks:", err);
+    }
+  };
 
   // Create task API call
   const createTask = async (taskData: Omit<Task, "id">) => {
@@ -45,7 +63,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   return (
-    <TaskContext.Provider value={{ tasks, createTask }}>
+    <TaskContext.Provider value={{ tasks, createTask, getTasks}}>
       {children}
     </TaskContext.Provider>
   );

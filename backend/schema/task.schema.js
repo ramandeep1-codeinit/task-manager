@@ -19,26 +19,27 @@ export const taskValidationSchema = Joi.object({
       .required(),
   }),
 });
-// export const taskUpdateValidationSchema = Joi.object({
-//   userName: Joi.string().optional().label('User Name'),
 
-//   project: Joi.string().optional().label('Project'),
+export const taskUpdateValidationSchema = Joi.object({
+  userName: Joi.string().optional().label('User Name'),
 
-//   taskDetail: Joi.string().optional().label('Task Detail'),
+  project: Joi.string().optional().label('Project'),
 
-//   status: Joi.string()
-//     .valid('pending', 'in-progress', 'completed')
-//     .optional()
-//     .default('pending')
-//     .label('Status'),
+  taskDetail: Joi.string().optional().label('Task Detail'),
 
-//   userId: Joi.string()
-//     .custom((value, helpers) => {
-//       if (!mongoose.Types.ObjectId.isValid(value)) {
-//         return helpers.message('Invalid user ID');
-//       }
-//       return value;
-//     })
-//     .optional()
-//     .label('User ID'),
-// });
+  status: Joi.string()
+    .valid('pending', 'in-progress', 'completed')
+    .optional()
+    .default('pending')
+    .label('Status'),
+
+  userId: Joi.string()
+    .custom((value, helpers) => {
+      if (!mongoose.Types.ObjectId.isValid(value)) {
+        return helpers.message('Invalid user ID');
+      }
+      return value;
+    })
+    .optional()
+    .label('User ID'),
+});

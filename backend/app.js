@@ -7,16 +7,18 @@ import cors from 'cors';
 
 dotenv.config({path: './config.env'});
 
-const app = express();
+ const app = express();
 
 
 app.use(cors({
   origin: "http://localhost:3000", // your Next.js frontend
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true // allow credentials (cookies, auth headers)
 }));
-// app.get("/" , (req ,res) => {
-//     res.send("hello worlds");
-// })
+app.get("/" , (req ,res) => {
+    res.send("hello worlds");
+})
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -30,12 +32,21 @@ app.use((req, res, next) => {
 });
 
 app.use("/api/users", userRoutes);
-app.use("/api/users", taskRoutes);
+app.use("/api", taskRoutes);
 
+// app.get("/", (req, res) => {
+//     res.send("hello worlds");
+// });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, async() => {
     console.log(`server is running at port ${PORT}`)
     await connect();
 })
+
+// app.get("/test", (req, res) => {
+//   res.json({ message: "API is working!" });
+// });
+
+// app.listen(4000, () => console.log("Server running on http://localhost:4000"));

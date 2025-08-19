@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTask } from "@/context/TaskContext";
+import { useAuth } from "@/context/AuthContext";
 
 interface Props {
   open: boolean;
@@ -29,7 +30,8 @@ interface TaskFormData {
 
 export default function AddTaskDialog({ open, setOpen, onSubmit }: Props) {
   // const { createTask } = useTask();
-
+   const { user } = useAuth();
+//  console.log(user, "user in dialog" , user?.name);
   const [formData, setFormData] = useState<TaskFormData>({
     userName: "",
     project: "",
@@ -37,7 +39,11 @@ export default function AddTaskDialog({ open, setOpen, onSubmit }: Props) {
     status: "pending",
     userId: "",
   });
-  console.log(formData, "data");
+
+//  console.log(formData, "data");
+
+
+
   const handleChange = (name: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -46,19 +52,33 @@ export default function AddTaskDialog({ open, setOpen, onSubmit }: Props) {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await onSubmit(formData);
-    setFormData({
-      userName: "",
-      project: "",
-      taskDetail: "",
-      status: "pending",
-      userId: "66b2b2f3c5a123456789abcd",
-    });
-    setOpen(false);
+  e.preventDefault();
 
-    console.log(formData, "form data");
+  if (!user) return; // make sure user is available
+
+  
+  // attach userId dynamically
+  const updatedFormData = {
+    ...formData,
+    userId: user.id, 
+    userName: user.name  // dynamically set
   };
+
+  await onSubmit(updatedFormData);
+
+  // reset form but keep userId ready
+  setFormData({
+    userName: "",
+    project: "",
+    taskDetail: "",
+    status: "pending",
+    userId: "",   // keep logged-in user id
+  });
+
+  setOpen(false);
+
+  console.log(updatedFormData, "form data sent");
+};
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

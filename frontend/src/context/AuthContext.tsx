@@ -9,6 +9,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  role: string; // Assuming role is a string, adjust as necessary
   // Add more fields based on your API response
 }
 
@@ -32,10 +33,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
+
+   // 👇 Hydrate user from localStorage on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsedUser: User = JSON.parse(storedUser);
+        setUser(parsedUser);
+      } catch (err) {
+        console.error("Failed to parse user from localStorage", err);
+      }
+    }
+  }, []);
+  
   const login = async (email: string, password: string) => {
     try {
       const res = await api.post('/users/login', { email, password });
-      setUser(res.data.user); // adjust based on your API
+      const loggedInUser = res.data.user;
+      const token = res.data.token;
+      // Save in localStorage for persistence
+      localStorage.setItem('user', JSON.stringify(loggedInUser));
+      localStorage.setItem('token', token);
+
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Login failed:', error.response?.data?.message || error.message);
@@ -45,6 +65,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem('user');
+  localStorage.removeItem('token');
     router.push('/login');
   };
 

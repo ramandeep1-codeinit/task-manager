@@ -63,7 +63,7 @@ export const loginUser = async (req, res) => {
 
     // Create JWT Token
     const token = jwt.sign(
-      { id: existingUser._id, email: existingUser.email, type: existingUser.type },
+      { id: existingUser._id, email: existingUser.email, role: existingUser.role },
       process.env.JWT_SECRET,
       { expiresIn: '30d' } // valid for 30 days
     );
@@ -76,7 +76,7 @@ export const loginUser = async (req, res) => {
       user: {
         id: existingUser._id,
         email: existingUser.email,
-        type: existingUser.type
+        role: existingUser.role, // Assuming you have a name field
       }
     });
   } catch (err) {
