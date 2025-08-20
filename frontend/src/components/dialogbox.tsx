@@ -13,11 +13,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTask } from "@/context/TaskContext";
 import { useAuth } from "@/context/AuthContext";
+import { init } from "next/dist/compiled/webpack/webpack";
+
+interface Task {
+  id: string;
+  userName: string;
+  project: string;
+  taskDetail: string;
+  status: string;
+  userId: string;
+}
 
 interface Props {
   open: boolean;
   setOpen: (open: boolean) => void;
   onSubmit: (task: any) => Promise<void>;
+  initialData?: Omit<Task, "id">; // 👈 add this line
 }
 
 interface TaskFormData {
@@ -28,7 +39,7 @@ interface TaskFormData {
   userId: string;
 }
 
-export default function AddTaskDialog({ open, setOpen, onSubmit }: Props) {
+export default function AddTaskDialog({ open, setOpen, onSubmit ,initialData }: Props) {
   // const { createTask } = useTask();
    const { user } = useAuth();
 //  console.log(user, "user in dialog" , user?.name);
@@ -39,10 +50,33 @@ export default function AddTaskDialog({ open, setOpen, onSubmit }: Props) {
     status: "pending",
     userId: "",
   });
-
+console.log(formData, "form data in dialog");   
 //  console.log(formData, "data");
 
+ // Track changes compared to initialData
+  const [changedFields, setChangedFields] = useState<Record<string, boolean>>({});
 
+
+  // Prefill form when editing
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        userName: initialData.userName || user?.name || "",
+        project: initialData.project || "",
+        taskDetail: initialData.taskDetail || "",
+        status: initialData.status || "pending",
+        userId: initialData.userId || user?.id || "",
+      });
+    } else {
+      setFormData({
+        userName: "",
+        project: "",
+        taskDetail: "",
+        status: "pending",
+        userId: user?.id || "",
+      });
+    }
+  }, [initialData, user]);
 
   const handleChange = (name: string, value: string) => {
     setFormData((prev) => ({
@@ -51,34 +85,24 @@ export default function AddTaskDialog({ open, setOpen, onSubmit }: Props) {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+   const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
 
-  if (!user) return; // make sure user is available
+    if(initialData) {
+      await onSubmit(formData);
+    }else{
+ const updatedFormData = {
+      ...formData,
+      userId: user.id,
+      userName: user.name,
+    };
 
-  
-  // attach userId dynamically
-  const updatedFormData = {
-    ...formData,
-    userId: user.id, 
-    userName: user.name  // dynamically set
+    await onSubmit(updatedFormData);
+    }
+   
+    setOpen(false);
   };
-
-  await onSubmit(updatedFormData);
-
-  // reset form but keep userId ready
-  setFormData({
-    userName: "",
-    project: "",
-    taskDetail: "",
-    status: "pending",
-    userId: "",   // keep logged-in user id
-  });
-
-  setOpen(false);
-
-  console.log(updatedFormData, "form data sent");
-};
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -87,9 +111,11 @@ export default function AddTaskDialog({ open, setOpen, onSubmit }: Props) {
       </DialogTrigger> */}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Task</DialogTitle>
+          <DialogTitle>{initialData ? "Edit Task" : "Add New Task"}</DialogTitle>
           <DialogDescription>
-            Enter the task details to add a new task.
+           {initialData
+              ? "Update the task details. Changed fields are highlighted."
+              : "Enter the task details to add a new task."}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -120,7 +146,7 @@ export default function AddTaskDialog({ open, setOpen, onSubmit }: Props) {
         </div>
         <DialogFooter>
           <Button onClick={handleSubmit} className="bg-primary text-white">
-            Save Task
+          {initialData ? "Update Task" : "Save Task"}
           </Button>
         </DialogFooter>
       </DialogContent>

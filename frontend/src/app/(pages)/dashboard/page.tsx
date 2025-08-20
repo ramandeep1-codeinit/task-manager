@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import AddTaskDialog from "@/components/dialogbox";
-import { useTask } from "@/context/TaskContext";
+import { Task, useTask } from "@/context/TaskContext";
 import withAuth from "@/components/withAuth";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/sidebar";
@@ -51,8 +51,11 @@ const getStatusColor = (status: string) => {
 
  function Dashboard() {
    const { user } = useAuth();
-  const { createTask , tasks , getTasks} = useTask();
+  const { createTask , tasks ,updateTask, deleteTask, getTasks ,getTaskById} = useTask();
   const [open, setOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<any>(null);
+  const [selectedTask, setSelectedTask] = useState<Omit<Task, "id"> | undefined>(undefined);;
+const [editTaskId, setEditTaskId] = useState<string | undefined>();
 
   console.log("Tasks in Dashboard:", tasks);
    // ✅ Fetch tasks on mount
@@ -65,6 +68,40 @@ const getStatusColor = (status: string) => {
     }
   }, [user]);
 
+  const handleEditTask = async (formData: any) => {
+    //console.log("Editing task:", selectedTask, "with ID:", editTaskId);
+      if (!editTaskId || !selectedTask) return;
+   // console.log("editng data"  ,editTaskId, selectedTask!, user!.role, user!.id)
+     updateTask(editTaskId, formData, user!.role, user!.id);
+    setOpen(false);
+    setSelectedTask(undefined);
+  
+};
+
+// Open dialog for add
+const openAddDialog = () => {
+  setSelectedTask(undefined);
+  setOpen(true);
+};
+
+// Open dialog for edit
+const openEditDialog = async (_id: string) => {
+  const task = await getTaskById(_id);
+    if (task) {
+    setEditTaskId(task._id);
+    setSelectedTask(task);   // pass this to your dialog as initialData
+    setOpen(true);
+  }
+};
+
+  // ✅ Handle Delete
+  const handleDelete = (id: string,role: string, userId: string) => {
+    console.log("Deleting task with ID:", id );
+    if (confirm("Are you sure you want to delete this task?")) {
+      deleteTask(id ,role, userId);
+    }
+  };
+  
   return (
 
   
@@ -75,7 +112,12 @@ const getStatusColor = (status: string) => {
   </aside>
 
       <div className="flex-1 bg-white p-4 md:p-8">
-        <AddTaskDialog open={open} setOpen={setOpen} onSubmit={createTask} />
+        <AddTaskDialog
+          open={open}
+          setOpen={setOpen}
+          onSubmit={selectedTask ? handleEditTask : createTask}
+          initialData={selectedTask}
+        />
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-xl md:text-2xl font-bold">
@@ -83,7 +125,7 @@ const getStatusColor = (status: string) => {
             </CardTitle>
             <Button
               className="bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={() => setOpen(true)}
+              onClick={() => openAddDialog()}
             >
               <Plus className="mr-2 h-4 w-4" /> Add Task
             </Button>
@@ -100,9 +142,9 @@ const getStatusColor = (status: string) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tasks.map((task) => (
-                  <TableRow key={task.id}>
-                    <TableCell>{task.id}</TableCell>
+                {tasks.map((task :any) => (
+                  <TableRow key={task._id}>
+                    <TableCell>{task._id}</TableCell>
                     <TableCell className="text-blue-600 font-medium cursor-pointer hover:underline">
                       {task.project}
                     </TableCell>
@@ -130,16 +172,16 @@ const getStatusColor = (status: string) => {
                       <div className="flex items-center gap-2">
                         {/* Edit Button */}
                         <button
-                          className="text-blue-500 hover:text-blue-700 text-xs font-medium"
-                        // onClick={() => handleEdit(task)}
+                          className="text-blue-500 hover:text-blue-700 text-xs font-medium cursor-pointer"
+                         onClick={() => openEditDialog(task._id)}
                         >
-                          <Pencil className="mr-2 h-4 w-4" />
+                          <Pencil className="mr-2 h-4 w-4 " />
                         </button>
 
                         {/* Delete Button */}
                         <button
                           className="text-red-500 hover:text-red-700 text-xs font-medium"
-                        //  onClick={() => handleDelete(task.id)}
+                          onClick={() => handleDelete(task._id, user!.role, user!.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                         </button>

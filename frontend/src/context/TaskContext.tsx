@@ -5,17 +5,23 @@ import api from "@/lib/api";
 import axios from "axios";
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
-interface Task {
-  id?: string;
+export interface Task {
+  _id?: string;
   project: string;
   taskDetail: string;
   status: string;
+   userId: string;
+  role: string;
+  userName: string; 
 }
 
 interface TaskContextType {
   tasks: Task[];
   createTask: (taskData: Omit<Task, "id">) => Promise<void>;
   getTasks: (role: string, userId?: string) => Promise<void>;
+   getTaskById: (id: string) => Promise<Task | null>; 
+   updateTask: (id: string, updatedData: Partial<Task> ,role: string, userId: string) => Promise<void>;
+  deleteTask: (id: string ,role: string, userId: string) => Promise<void>;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -24,6 +30,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
+
 
    const getTasks = async (role: string, userId?: string) => {
     try {
@@ -42,6 +49,17 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+    // ✅ Get a single task by ID
+  const getTaskById = async (id: string): Promise<Task | null> => {
+    try {
+      const res = await api.get(`/tasksbyId/${id}`);
+      return res.data.data || res.data; // depending on backend response
+    } catch (err) {
+      console.error("Error fetching task by ID:", err);
+      return null;
+    }
+  };
+
   // Create task API call
   const createTask = async (taskData: Omit<Task, "id">) => {
     try {
@@ -55,15 +73,45 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
       //   if (!res.ok) throw new Error(data.message || "Failed to create task");
 
       //   setTasks((prev) => [...prev, data.data]); // append new task to state
-      const res = await api.post("/users/createTask", taskData);
+      const res = await api.post("/createTask", taskData);
       setTasks((prev) => [...prev, res.data]);
+      getTasks(taskData.role, taskData.userId); // Refresh tasks after creation
     } catch (err) {
       console.error("Error creating task:", err);
     }
   };
 
+    // ✅ Update task
+  const updateTask = async (id: string, updatedData: Partial<Task> , userRole :any , userId: any) => {
+    try {
+      const res = await api.put(`update/tasks/${id}`, updatedData);
+      setTasks((prev) =>
+        prev.map((task) => (task._id === id ? { ...task, ...res.data } : task))
+      );
+       getTasks(userRole, userId);
+    } catch (err) {
+      console.error("Error updating task:", err);
+    }
+  };
+
+  // ✅ Delete task
+  const deleteTask = async (id: string, role: string, userId: string ) => {
+    try {
+      await api.delete(`delete/tasks/${id}`);
+       setTasks((prev) => {
+      const updatedTasks = prev.filter((task) => task._id !== id);
+      console.log("Updated Tasks:", updatedTasks); // Debug
+      return updatedTasks;
+    });
+      getTasks(role, userId);
+    } catch (err) {
+      console.error("Error deleting task:", err);
+    }
+  };
+
+
   return (
-    <TaskContext.Provider value={{ tasks, createTask, getTasks}}>
+    <TaskContext.Provider value={{ tasks, createTask, getTasks ,updateTask, deleteTask ,getTaskById}}>
       {children}
     </TaskContext.Provider>
   );

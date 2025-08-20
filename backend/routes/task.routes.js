@@ -3,6 +3,7 @@ import {
   addTask,
   deleteTask,
   getAllTasks,
+  getTaskById,
   getTasksByUserId,
   updateTask,
 } from "../controllers/task.controller.js";
@@ -17,5 +18,6 @@ router.get("/tasks/:userId", getTasksByUserId);
 router.get("/task/all", getAllTasks);
 router.put("/update/tasks/:id", validateResource(taskUpdateValidationSchema) ,updateTask); // update
 router.delete("/delete/tasks/:id", deleteTask); 
+router.get("/tasksbyId/:id", getTaskById); 
 
 export default router;

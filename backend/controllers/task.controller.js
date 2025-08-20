@@ -106,3 +106,37 @@ export async function getTasksByUserId(req, res) {
     });
   }
 }
+
+
+export async function getTaskById(req, res) {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Task ID is required",
+      });
+    }
+
+    const task = await Task.findById(id);
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: task,
+    });
+  } catch (error) {
+    console.error("Error fetching task by ID:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+}
