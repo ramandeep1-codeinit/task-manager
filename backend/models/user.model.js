@@ -14,10 +14,13 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 6,
   },
-
+  userName: {
+      type: String,
+      required: true,
+    },
   role: {
-    type: Number,
-    enum: [1, 2], // 1 = Manager, 2 = Employee
+    type: String,
+    enum: ["Manager", "Employee"], // 1 = Manager, 2 = Employee
     required: true,
   }
 

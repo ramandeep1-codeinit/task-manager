@@ -2,6 +2,14 @@
 import Joi from 'joi';
 
 export const registerValidation = Joi.object({
+  userName: Joi.string().min(2).max(50).required().messages({
+    'string.base': 'Username must be a string',
+    'string.empty': 'Username is required',
+    'string.min': 'Username must be at least 2 characters',
+    'string.max': 'Username cannot exceed 50 characters',
+    'any.required': 'Username is required',
+  }),
+
   email: Joi.string().email().required().messages({
     'string.email': 'Invalid email format',
     'any.required': 'Email is required',
@@ -12,10 +20,10 @@ export const registerValidation = Joi.object({
     'any.required': 'Password is required',
   }),
 
-  role: Joi.number().valid(1, 2).required().messages({
-    'any.only': 'Role must be 1 (Manager) or 2 (Employee)',
+  role: Joi.string().valid("Manager", "Employee").required().messages({
+    'any.only': 'Role must be either "Manager" or "Employee"',
     'any.required': 'Role is required',
-  })
+  }),
 });
 
 export const loginValidation = Joi.object({
@@ -26,5 +34,5 @@ export const loginValidation = Joi.object({
 
   password: Joi.string().required().messages({
     'any.required': 'Password is required',
-  })
+  }),
 });

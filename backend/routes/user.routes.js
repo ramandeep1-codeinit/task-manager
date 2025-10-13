@@ -1,14 +1,17 @@
-// routes/userRoutes.js
-
 import express from 'express';
-import { registerUser, loginUser } from '../controllers/user.controller.js';
+import { registerUser, loginUser, getAllUsers, updateUser, deleteUser } from '../controllers/user.controller.js';
 
 const router = express.Router();
 
-// @route   POST /api/users/register
 router.post('/register', registerUser);
-
-// @route   POST /api/users/login
 router.post('/login', loginUser);
+
+// ✅ Add this route
+router.get('/all', getAllUsers);
+
+// ✅ Update user route (requires user id)
+router.put('/:id', updateUser);
+
+router.delete('/:id', deleteUser);
 
 export default router;

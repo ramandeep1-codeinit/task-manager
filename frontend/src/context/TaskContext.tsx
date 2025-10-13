@@ -13,6 +13,7 @@ export interface Task {
    userId: string;
   role: string;
   userName: string; 
+  createdAt?: string;
 }
 
 interface TaskContextType {
@@ -35,7 +36,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
    const getTasks = async (role: string, userId?: string) => {
     try {
       let res;
-      if (role == "1") {    // Assuming '1' is the role for manager
+      if (role == "Manager") {    // Assuming '1' is the role for manager
         // Manager can see all tasks
         res = await api.get("/task/all");
       } else {
@@ -125,3 +126,5 @@ export const useTask = () => {
   }
   return context;
 };
+
+

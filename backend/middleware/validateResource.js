@@ -21,3 +21,4 @@ const validateResource = (schema) => async (req, res, next) => {
 
 // module.exports = validateResource;
 export default validateResource;
+

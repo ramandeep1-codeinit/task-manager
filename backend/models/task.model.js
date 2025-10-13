@@ -2,9 +2,6 @@ import mongoose from "mongoose";
 
 const taskSchema = new mongoose.Schema(
   {
-    userName: {
-      type: String,
-    },
     project: {
       type: String,
       required: true,
@@ -24,7 +21,9 @@ const taskSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true, // adds createdAt & updatedAt
+  }
 );
 
 const Task = mongoose.model("Task", taskSchema);

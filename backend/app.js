@@ -1,8 +1,15 @@
 import dotenv from "dotenv";
 import connect from "./utils/db.utils.js";
 import express from 'express';
+import cookieParser from "cookie-parser";
 import userRoutes from './routes/user.routes.js';
 import taskRoutes from './routes/task.routes.js';
+import projectRoutes from "./routes/project.routes.js";
+import attendanceRoutes from './routes/attendance.route.js';
+import managerTaskRoutes from './routes/managerTask.route.js';
+
+
+
 import cors from 'cors';
 
 dotenv.config({path: './config.env'});
@@ -19,7 +26,10 @@ app.use(cors({
 app.get("/" , (req ,res) => {
     res.send("hello worlds");
 })
+
 app.use(express.json());
+
+app.use(cookieParser());
 
 app.use((req, res, next) => {
     // res.setHeader('Access-Control-Allow-Origin', '*' , 'http://localhost:3000');
@@ -33,6 +43,12 @@ app.use((req, res, next) => {
 
 app.use("/api/users", userRoutes);
 app.use("/api", taskRoutes);
+app.use("/api/projects", projectRoutes);
+app.use("/api/attendance", attendanceRoutes);
+app.use("/api/managerTasks", managerTaskRoutes);
+
+
+
 
 // app.get("/", (req, res) => {
 //     res.send("hello worlds");
