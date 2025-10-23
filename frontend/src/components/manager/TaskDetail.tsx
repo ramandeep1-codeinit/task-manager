@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Funnel } from "lucide-react"; // Filter icon
+import { Funnel } from "lucide-react";
 
 interface Task {
   _id: string;
@@ -20,8 +20,18 @@ interface Task {
   createdAt?: string;
 }
 
-// Helper: check if date is in filter range
-function isDateInRange(dateStr: string, filter: string) {
+const FILTER_OPTIONS = [
+  { label: "All", value: "all" },
+  { label: "Today", value: "today" },
+  { label: "Week", value: "week" },
+  { label: "Month", value: "month" },
+  { label: "Year", value: "year" },
+] as const;
+
+type FilterType = typeof FILTER_OPTIONS[number]["value"];
+
+function isDateInRange(dateStr?: string, filter?: FilterType) {
+  if (!dateStr) return false;
   const date = new Date(dateStr);
   const now = new Date();
 
@@ -47,35 +57,39 @@ function isDateInRange(dateStr: string, filter: string) {
 
 export default function EmployeeTaskPage({
   employeeName,
-  tasks,
+  tasks = [],
   onBack,
   formatDate,
 }: {
   employeeName: string;
-  tasks: Task[];
+  tasks?: Task[];
   onBack: () => void;
   formatDate: (d?: string) => string;
 }) {
-  const [filter, setFilter] = useState<"today" | "week" | "month" | "year" | "all">("all");
+  const [filter, setFilter] = useState<FilterType>("all");
   const [showFilterOptions, setShowFilterOptions] = useState(false);
-
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close filter when clicking outside
+  // Close filter dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowFilterOptions(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const { sortedTasks, highlightTaskId } = useMemo(() => {
+    const filtered = tasks.filter((t) => isDateInRange(t.createdAt, filter));
+    const sorted = filtered.sort(
+      (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
+    );
+    const today = new Date().toDateString();
+    const highlightId = sorted.find((t) => t.createdAt && new Date(t.createdAt).toDateString() === today)?._id ?? sorted[0]?._id;
+    return { sortedTasks: sorted, highlightTaskId: highlightId };
+  }, [tasks, filter]);
 
   if (!tasks || tasks.length === 0)
     return (
@@ -87,60 +101,27 @@ export default function EmployeeTaskPage({
       </div>
     );
 
-  // Apply filter
-  const filteredTasks = tasks.filter((t) =>
-    t.createdAt ? isDateInRange(t.createdAt, filter) : false
-  );
-
-  // Sort tasks by createdAt descending
-  const sortedTasks = [...filteredTasks].sort(
-    (a, b) =>
-      new Date(b.createdAt || "").getTime() - new Date(a.createdAt || "").getTime()
-  );
-
-  const today = new Date().toDateString();
-
-  const highlightTaskId =
-    sortedTasks.find(
-      (t) => new Date(t.createdAt || "").toDateString() === today
-    )?._id || sortedTasks[0]?._id;
-
-  const filterOptions: { label: string; value: typeof filter }[] = [
-    { label: "All", value: "all" },
-    { label: "Today", value: "today" },
-    { label: "Week", value: "week" },
-    { label: "Month", value: "month" },
-    { label: "Year", value: "year" },
-  ];
-
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-gray-900">
-          {employeeName} - Task Details
-        </h2>
-
+        <h2 className="text-2xl font-bold text-gray-900">{employeeName} - Task Details</h2>
         <div className="flex items-center gap-2">
-          {/* Back Button */}
-          <Button
-            onClick={onBack}
-            className="bg-gray-200 text-gray-800 hover:bg-gray-300"
-          >
+          <Button onClick={onBack} className="bg-gray-200 text-gray-800 hover:bg-gray-300">
             ← Back
           </Button>
 
-          {/* Filter Icon */}
           <div className="relative" ref={dropdownRef}>
             <Button
               className="p-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
-              onClick={() => setShowFilterOptions(!showFilterOptions)}
+              onClick={() => setShowFilterOptions((prev) => !prev)}
             >
               <Funnel className="w-4 h-4" />
             </Button>
 
             {showFilterOptions && (
               <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 shadow-lg rounded-md z-50">
-                {filterOptions.map((opt) => (
+                {FILTER_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => {
@@ -148,7 +129,7 @@ export default function EmployeeTaskPage({
                       setShowFilterOptions(false);
                     }}
                     className={`w-full text-left px-4 py-2 rounded text-sm hover:bg-gray-100 ${
-                      filter === opt.value ? "bg-blue-500 text-gray-700" : "text-gray-700"
+                      filter === opt.value ? "bg-blue-500 text-white" : "text-gray-700"
                     }`}
                   >
                     {opt.label}
@@ -160,6 +141,7 @@ export default function EmployeeTaskPage({
         </div>
       </div>
 
+      {/* Task Table */}
       <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-md">
         <Table className="min-w-full border-collapse">
           <TableHeader>
@@ -195,14 +177,7 @@ export default function EmployeeTaskPage({
                     {task.status}
                   </span>
                 </TableCell>
-                <TableCell className="flex items-center gap-2">
-                  {formatDate(task.createdAt)}
-                  {task._id === highlightTaskId && (
-                    <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                      Today
-                    </span>
-                  )}
-                </TableCell>
+                <TableCell>{formatDate(task.createdAt)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -3,9 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { TaskProvider } from "@/context/TaskContext";
+import { ProjectProvider } from "@/context/ProjectContext"; // ✅ add ProjectProvider
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,14 +29,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
-          <TaskProvider>
-            {children}
-             <ToastContainer /> 
-          </TaskProvider>
+          <ProjectProvider>
+            <TaskProvider>
+              {children}
+              <ToastContainer />
+            </TaskProvider>
+          </ProjectProvider>
         </AuthProvider>
       </body>
     </html>

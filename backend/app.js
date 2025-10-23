@@ -6,7 +6,7 @@ import userRoutes from './routes/user.routes.js';
 import taskRoutes from './routes/task.routes.js';
 import projectRoutes from "./routes/project.routes.js";
 import attendanceRoutes from './routes/attendance.route.js';
-import managerTaskRoutes from './routes/managerTask.route.js';
+import taskDetailRoutes from "./routes/taskDetail.routes.js"; 
 
 
 
@@ -45,7 +45,7 @@ app.use("/api/users", userRoutes);
 app.use("/api", taskRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/attendance", attendanceRoutes);
-app.use("/api/managerTasks", managerTaskRoutes);
+app.use("/api/taskDetail", taskDetailRoutes);
 
 
 

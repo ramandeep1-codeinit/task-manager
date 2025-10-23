@@ -6,18 +6,16 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
 interface ManagerSidebarProps {
-  onSectionChange: (section: string) => void;
-  onEmployeeSelect?: (employeeName: string) => void;
-  managerLogin?: string; // login ID to display
+  onSectionChange: (section: "tasks" | "projects" | "employees") => void;
+  onEmployeeSelect: (employeeName: string | null) => void;
 }
 
 export default function ManagerSidebar({
   onSectionChange,
   onEmployeeSelect,
-  managerLogin,
 }: ManagerSidebarProps) {
   const { user, logout } = useAuth();
-  const [active, setActive] = useState("tasks");
+  const [active, setActive] = useState<"tasks" | "projects" | "employees">("tasks");
 
   // Helper to get avatar initials
   const getAvatarText = (nameOrEmail?: string) => {
@@ -27,25 +25,31 @@ export default function ManagerSidebar({
     return (parts[0][0] + parts[1][0]).toUpperCase();
   };
 
-  // Load last active section
+  // Load last active section from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem("managerActiveSection");
+    const saved = localStorage.getItem("managerActiveSection") as
+      | "tasks"
+      | "projects"
+      | "employees"
+      | null;
     if (saved) {
       setActive(saved);
       onSectionChange(saved);
+    } else {
+      onSectionChange(active);
     }
   }, [onSectionChange]);
 
-  const handleClick = (section: string) => {
+  const handleClick = (section: "tasks" | "projects" | "employees") => {
     setActive(section);
     onSectionChange(section);
+    onEmployeeSelect(null); // reset selected employee
     localStorage.setItem("managerActiveSection", section);
   };
 
   return (
     <div className="w-64 p-4 bg-gray-50 h-screen flex flex-col justify-between border-r border-gray-200 shadow-sm">
       <div className="mb-4">
-        {/* Top: User Info */}
         {user && (
           <div className="mb-4 p-3 bg-white rounded-lg shadow-sm border border-gray-200 text-sm flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-semibold text-sm">
@@ -59,7 +63,7 @@ export default function ManagerSidebar({
         )}
 
         {/* Sidebar Navigation */}
-        <nav className="mt-4">
+        <nav className="mt-4 flex flex-col gap-1">
           <button
             onClick={() => handleClick("tasks")}
             className={`flex items-center w-full px-6 py-3 text-sm font-medium transition-all duration-200 rounded-lg ${
@@ -98,11 +102,11 @@ export default function ManagerSidebar({
         </nav>
       </div>
 
-      {/* Bottom: Logout */}
+      {/* Bottom Logout */}
       <div className="mt-auto">
         <Button
           variant="outline"
-          className="w-full flex items-center justify-center gap-2 px-2 py-1 text-sm h-7 hover:bg-accent hover:text-accent-foreground"
+          className="w-full flex items-center justify-center gap-2 px-2 py-1 text-sm h-7 hover:bg-gray-100 hover:text-accent-foreground"
           onClick={logout}
         >
           <LogOut className="h-4 w-4" /> Logout

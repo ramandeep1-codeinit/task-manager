@@ -10,7 +10,7 @@ import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 
 export default function LoginPage() {
-  const { login } = useAuth()
+  const { login } = useAuth() // ✅ from AuthContext
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -20,14 +20,13 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
 
-    // ✅ Validation for required fields
+    // ✅ Basic validation
     if (!email || !password) {
       toast.error("Please fill all required fields.")
       setLoading(false)
       return
     }
 
-    // ✅ Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       toast.error("Please enter a valid email.")
@@ -36,11 +35,11 @@ export default function LoginPage() {
     }
 
     try {
-      await login(email, password)
+      await login(email, password) // ✅ context handles API call & redirect
       toast.success('Login successful!')
     } catch (err: any) {
+      // ✅ show proper error message
       const backendMessage = err.response?.data?.message
-
       if (backendMessage === "User does not exist") {
         toast.error("Email is incorrect")
       } else if (backendMessage === "Invalid credentials") {
@@ -64,11 +63,9 @@ export default function LoginPage() {
             <span className="text-[#1E2D70]">workplace</span>
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
-            {/* Email Input */}
+<form onSubmit={handleSubmit} className="space-y-4" autoComplete="on" noValidate>
             <Input
-              type="text"
-              name="username"
+              type="email"
               placeholder="Email"
               autoComplete="username"
               className="bg-gray-100"
@@ -77,13 +74,11 @@ export default function LoginPage() {
               required
             />
 
-            {/* Password Input */}
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
-                name="current-password"
                 placeholder="Password"
-                autoComplete="new-password" 
+                autoComplete="current-password"
                 className="bg-gray-100 pr-10"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -115,6 +110,7 @@ export default function LoginPage() {
               src="/02.webp"
               alt="Illustration"
               fill
+              sizes="(max-width: 768px) 100vw, 50vw"
               className="rounded-xl object-contain md:object-cover"
               priority
             />

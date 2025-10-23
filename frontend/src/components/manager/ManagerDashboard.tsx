@@ -78,8 +78,8 @@ export default function ManagerDashboard() {
   // Fetch tasks
   const fetchTasks = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/users/task/all"); // backend route
-      setTasks(res.data.data || []);    //"http://localhost:8080/api/tasks/users/task/all"
+      const res = await axios.get("http://localhost:8080/api/users/task/all"); 
+      setTasks(res.data.data || []);    
       setError("");
     } catch (err) {
       console.error(err);
