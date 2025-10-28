@@ -85,3 +85,14 @@ export const updateProject = async (req, res) => {
       .json({ success: false, message: "Failed to update project", error: error.message });
   }
 };
+
+
+export const getProjectById = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) return res.status(404).json({ message: "Project not found" });
+    res.status(200).json({ project });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};

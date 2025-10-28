@@ -1,62 +1,96 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { LogOut, LayoutDashboard, Clock, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useTask } from "@/context/TaskContext";
+import { notifySuccess, notifyError, notifyDelete } from "@/lib/toast"; 
 
-interface EmployeeSidebarProps {
-  onSectionChange?: (section: "dashboard" | "assignedProjects" | "attendance") => void;
-}
+interface EmployeeSidebarProps {}
 
-export default function EmployeeSidebar({ onSectionChange }: EmployeeSidebarProps) {
+export default function EmployeeSidebar({}: EmployeeSidebarProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const { user, logout } = useAuth();
   const { setSelectedTask } = useTask();
-  const [active, setActive] = useState<"dashboard" | "assignedProjects" | "attendance">("dashboard");
 
-  // Load last active section from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem("employeeActiveSection") as
-      | "dashboard"
-      | "assignedProjects"
-      | "attendance"
-      | null;
-    if (saved) {
-      setActive(saved);
-      onSectionChange?.(saved);
-    } else {
-      onSectionChange?.(active);
-    }
-  }, [onSectionChange]);
-
-  const handleClick = (section: "dashboard" | "assignedProjects" | "attendance") => {
-    setActive(section);
-    setSelectedTask?.(null); // Clear any selected task when switching sections
-    onSectionChange?.(section);
-    localStorage.setItem("employeeActiveSection", section);
+  // Determine active section based on pathname
+  const getSectionFromPath = (path: string) => {
+    if (path.includes("assignedprojects")) return "assignedProjects";
+    if (path.includes("attendance")) return "attendance";
+    if (path.includes("employee-dashboard")) return "employee-dashboard";
+    return "employee-dashboard";
   };
 
+  const [active, setActive] = useState<"employee-dashboard" | "assignedProjects" | "attendance">(
+    getSectionFromPath(pathname)
+  );
+
+  // Restore active section from localStorage on mount
+  // useEffect(() => {
+  //   const saved = localStorage.getItem("employeeActiveSection") as
+  //     | "employee-dashboard"
+  //     | "assignedProjects"
+  //     | "attendance"
+  //     | null;
+  //   if (saved) {
+  //     setActive(saved);
+  //     router.replace(sectionToRoute(saved));
+  //   }
+  // }, []);
+
+  // Map section keys to routes
+  const sectionToRoute = (section: "employee-dashboard" | "assignedProjects" | "attendance") => {
+    switch (section) {
+      case "employee-dashboard":
+        return "/employee-dashboard"; 
+      case "assignedProjects":
+        return "/assignedprojects";
+      case "attendance":
+        return "/attendance";
+      default:
+        return "/employee-dashboard";
+    }
+  };
+
+  const handleClick = (section: "employee-dashboard" | "assignedProjects" | "attendance") => {
+    setActive(section);
+    setSelectedTask?.(null);
+    localStorage.setItem("employeeActiveSection", section);
+    router.push(sectionToRoute(section));
+  };
+
+// Logout
   const handleLogout = () => {
     logout();
-    setActive("dashboard");
-    localStorage.setItem("employeeActiveSection", "dashboard");
-    onSectionChange?.("dashboard");
+    // setActive("employee-dashboard");
+    // localStorage.setItem("employeeActiveSection", "employee-dashboard");
+    router.push("/login");
   };
 
+
   const avatarText = useMemo(() => {
-    if (!user?.name && !user?.email) return "NA";
-    return (user.name || user.email)
-      .split(" ")
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase();
-  }, [user?.name, user?.email]);
+  if (!user?.name && !user?.email) return "NA";
+
+  const name = user.name || user.email;
+
+  const words = name.split(" ").filter(Boolean); // remove empty strings
+
+  if (words.length === 1) {
+    // take first 2 letters of the single word
+    return words[0].slice(0, 2).toUpperCase();
+  }
+
+  // take first letters of first 2 words
+  return words[0][0].toUpperCase() + words[1][0].toUpperCase();
+}, [user?.name, user?.email]);
+
 
   const sections = useMemo(
     () => [
-      { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { key: "employee-dashboard", label: "Dashboard", icon: LayoutDashboard },
       { key: "assignedProjects", label: "Assigned Projects", icon: ClipboardList },
       { key: "attendance", label: "Attendance", icon: Clock },
     ],

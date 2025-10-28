@@ -1,59 +1,99 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { LayoutDashboard, FolderKanban, Users, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
-interface ManagerSidebarProps {
-  onSectionChange: (section: "tasks" | "projects" | "employees") => void;
-  onEmployeeSelect: (employeeName: string | null) => void;
-}
-
-export default function ManagerSidebar({
-  onSectionChange,
-  onEmployeeSelect,
-}: ManagerSidebarProps) {
+export default function ManagerSidebar() {
+  const router = useRouter();
+  const pathname = usePathname();
   const { user, logout } = useAuth();
-  const [active, setActive] = useState<"tasks" | "projects" | "employees">("tasks");
 
-  // Helper to get avatar initials
-  const getAvatarText = (nameOrEmail?: string) => {
-    if (!nameOrEmail) return "NA";
-    const parts = nameOrEmail.split(" ");
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return (parts[0][0] + parts[1][0]).toUpperCase();
+  // Determine active section from current path
+  const getSectionFromPath = (path: string | null) => {
+    if (!path) return "manager-dashboard";
+    if (path.includes("projects")) return "projects";
+    if (path.includes("employeedetail")) return "employeedetail";
+    if (path.includes("manager-dashboard")) return "manager-dashboard";
+    return "manager-dashboard";
   };
 
-  // Load last active section from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem("managerActiveSection") as
-      | "tasks"
-      | "projects"
-      | "employees"
-      | null;
-    if (saved) {
-      setActive(saved);
-      onSectionChange(saved);
-    } else {
-      onSectionChange(active);
+  const [active, setActive] = useState<"manager-dashboard" | "projects" | "employeedetail">(getSectionFromPath(pathname));
+
+  // Map section to route
+  const sectionToRoute = (section: "manager-dashboard" | "projects" | "employeedetail") => {
+    switch (section) {
+      case "manager-dashboard":
+        return "/manager-dashboard";
+      case "projects":
+        return "/projects";
+      case "employeedetail":
+        return "/employeedetail";
+      default:
+        return "/manager-dashboard";
     }
-  }, [onSectionChange]);
-
-  const handleClick = (section: "tasks" | "projects" | "employees") => {
-    setActive(section);
-    onSectionChange(section);
-    onEmployeeSelect(null); // reset selected employee
-    localStorage.setItem("managerActiveSection", section);
   };
+
+  // Load saved section from localStorage
+  // useEffect(() => {
+  //   const saved = localStorage.getItem("managerActiveSection") as "manager-dashboard" | "projects" | "employeedetail" | null;
+  //   if (saved) {
+  //     setActive(saved);
+  //     router.replace(sectionToRoute(saved));
+  //   }
+  // }, [router]);
+
+  // Handle sidebar clicks
+  const handleClick = (section: "manager-dashboard" | "projects" | "employeedetail") => {
+    setActive(section);
+    localStorage.setItem("managerActiveSection", section);
+    router.push(sectionToRoute(section));
+  };
+
+  // Logout
+  const handleLogout = () => {
+    logout();
+    setActive("manager-dashboard");
+    localStorage.setItem("managerActiveSection", "manager-dashboard");
+    router.push("/login");
+  };
+
+  //Avtar
+ const avatarText = useMemo(() => {
+   if (!user?.name && !user?.email) return "NA";
+ 
+   const name = user.name || user.email;
+ 
+   const words = name.split(" ").filter(Boolean); // remove empty strings
+ 
+   if (words.length === 1) {
+     // take first 2 letters of the single word
+     return words[0].slice(0, 2).toUpperCase();
+   }
+ 
+   // take first letters of first 2 words
+   return words[0][0].toUpperCase() + words[1][0].toUpperCase();
+ }, [user?.name, user?.email]);
+
+  const sections = useMemo(
+    () => [
+      { key: "manager-dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { key: "projects", label: "Projects", icon: FolderKanban },
+      { key: "employeedetail", label: "Employees", icon: Users },
+    ],
+    []
+  );
 
   return (
-    <div className="w-64 p-4 bg-gray-50 h-screen flex flex-col justify-between border-r border-gray-200 shadow-sm">
-      <div className="mb-4">
+    <aside className="w-64 h-screen bg-gray-50 flex flex-col justify-between border-r border-gray-200 shadow-sm">
+      <div className="p-4">
+        {/* User info */}
         {user && (
           <div className="mb-4 p-3 bg-white rounded-lg shadow-sm border border-gray-200 text-sm flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-semibold text-sm">
-              {getAvatarText(user.name || user.email)}
+              {avatarText}
             </div>
             <div className="flex flex-col">
               <p className="font-semibold">{user.name || user.email}</p>
@@ -62,56 +102,40 @@ export default function ManagerSidebar({
           </div>
         )}
 
-        {/* Sidebar Navigation */}
+        {/* Sidebar navigation */}
         <nav className="mt-4 flex flex-col gap-1">
-          <button
-            onClick={() => handleClick("tasks")}
-            className={`flex items-center w-full px-6 py-3 text-sm font-medium transition-all duration-200 rounded-lg ${
-              active === "tasks"
-                ? "bg-indigo-100 text-indigo-700 font-semibold"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <LayoutDashboard className="mr-3 h-5 w-5" />
-            Dashboard
-          </button>
-
-          <button
-            onClick={() => handleClick("projects")}
-            className={`flex items-center w-full px-6 py-3 text-sm font-medium transition-all duration-200 rounded-lg ${
-              active === "projects"
-                ? "bg-indigo-100 text-indigo-700 font-semibold"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <FolderKanban className="mr-3 h-5 w-5" />
-            Projects
-          </button>
-
-          <button
-            onClick={() => handleClick("employees")}
-            className={`flex items-center w-full px-6 py-3 text-sm font-medium transition-all duration-200 rounded-lg ${
-              active === "employees"
-                ? "bg-indigo-100 text-indigo-700 font-semibold"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <Users className="mr-3 h-5 w-5" />
-            Employees
-          </button>
+          {sections.map((section) => {
+            const Icon = section.icon;
+            const isActive = active === section.key;
+            return (
+              <button
+                key={section.key}
+                onClick={() => handleClick(section.key as any)}
+                className={`flex items-center w-full px-6 py-3 text-sm font-medium transition-all duration-200 rounded-lg ${
+                  isActive
+                    ? "bg-indigo-100 text-indigo-700 font-semibold"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <Icon className="mr-3 h-5 w-5" />
+                {section.label}
+              </button>
+            );
+          })}
         </nav>
       </div>
 
-      {/* Bottom Logout */}
-      <div className="mt-auto">
+      {/* Logout button */}
+      <div className="mt-auto p-4">
         <Button
           variant="outline"
-          className="w-full flex items-center justify-center gap-2 px-2 py-1 text-sm h-7 hover:bg-gray-100 hover:text-accent-foreground"
-          onClick={logout}
+          className="w-full flex items-center justify-center gap-2 px-2 py-1 text-sm h-8 hover:bg-gray-100 hover:text-accent-foreground"
+          onClick={handleLogout}
         >
-          <LogOut className="h-4 w-4" /> Logout
+          <LogOut className="h-4 w-4" />
+          Logout
         </Button>
       </div>
-    </div>
+    </aside>
   );
 }

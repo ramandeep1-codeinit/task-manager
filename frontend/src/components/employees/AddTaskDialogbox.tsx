@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
+import { notifyError, notifySuccess } from "@/lib/toast";
+
 
 export interface Task {
   _id?: string;
@@ -103,21 +105,30 @@ export default function AddTaskDialog({ open, setOpen, initialData, onSubmit }: 
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.project || !formData.taskDetail) {
-      alert("Please fill in all required fields");
-      return;
-    }
-    if (!user) return;
+  
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    try {
-      await onSubmit(formData);
-      setOpen(false);
-    } catch (error) {
-      console.error("Error saving task:", error);
-    }
-  };
+  if (!formData.project || !formData.taskDetail) {
+    notifyError("Please fill in all required fields");
+    return;
+  }
+
+  if (!user) {
+    notifyError("User not found. Please log in again.");
+    return;
+  }
+
+  try {
+  await onSubmit(formData);
+  setOpen(false);
+} catch (error) {
+  console.error("Error saving task:", error);
+  notifyError("Failed to save task. Please try again.");
+}
+
+};
+
 
   const filteredProjects = projects.filter((p) =>
     p.projectName.toLowerCase().includes(projectSearchQuery.toLowerCase())

@@ -7,64 +7,66 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import api from "../lib/api"; // Adjust the import path as necessary
+import api from "../lib/api"; // ✅ your axios instance
 import { useRouter } from "next/navigation";
 
-// Define User and Context types
 interface User {
   id: string;
   name: string;
   email: string;
-  role: string; // Assuming role is a string, adjust as necessary
-  // Add more fields based on your API response
+  role: string;
 }
 
 interface AuthContextType {
   user: User | null;
+  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
-// Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// AuthProvider Props
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-// AuthProvider component
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true); // ✅ to prevent flicker
   const router = useRouter();
 
-  // 👇 Hydrate user from localStorage on mount
+  // ✅ Load user from localStorage on app start
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
+    const storedToken = localStorage.getItem("token");
+
+    if (storedUser && storedToken) {
       try {
         const parsedUser: User = JSON.parse(storedUser);
         setUser(parsedUser);
       } catch (err) {
-        console.error("Failed to parse user from localStorage", err);
+        console.error("Failed to parse stored user", err);
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
       }
     }
+
+    setLoading(false); // ✅ finished checking storage
   }, []);
 
+  // ✅ Login and store token/user
   const login = async (email: string, password: string) => {
     try {
       const res = await api.post("/users/login", { email, password });
-      const loggedInUser = res.data.user;
+      const loggedInUser: User = res.data.user;
       const token = res.data.token;
 
-      // Save in localStorage
       localStorage.setItem("user", JSON.stringify(loggedInUser));
       localStorage.setItem("token", token);
 
-      // Update React state so user is available immediately
       setUser(loggedInUser);
 
-      router.push("/dashboard");
+      // Redirect based on role
+      const role = loggedInUser.role?.toLowerCase();
+      if (role === "manager") router.push("/manager-dashboard");
+      else if (role === "employee") router.push("/employee-dashboard");
+      else router.push("/dashboard");
     } catch (error: any) {
       console.error(
         "Login failed:",
@@ -74,24 +76,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // ✅ Logout clears all auth data
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
     localStorage.removeItem("token");
-    router.push("/login");
+    router.replace("/login");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Custom hook
+// ✅ Custom Hook
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;

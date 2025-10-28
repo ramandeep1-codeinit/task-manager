@@ -58,29 +58,33 @@ export async function deleteTask(req, res) {
   }
 }
 
-// Get all tasks (with userName and createdAt)
 export async function getAllTasks(req, res) {
   try {
     const tasks = await Task.find()
       .populate("userId", "userName")
-      .select("-__v"); // keep createdAt & updatedAt
+      .select("-__v");
 
-    const formattedTasks = tasks.map(task => ({
-      _id: task._id,
-      userName: task.userId?.userName || "N/A",
-      project: task.project,
-      taskDetail: task.taskDetail,
-      status: task.status,
-      createdAt: task.createdAt,
-      updatedAt: task.updatedAt,
-    }));
+    // ✅ Only include tasks that have a valid userId and userName
+    const formattedTasks = tasks
+      .filter(task => task.userId && task.userId.userName) // remove N/A or null users
+      .map(task => ({
+        _id: task._id,
+        userId: task.userId._id,
+        userName: task.userId.userName,
+        project: task.project,
+        taskDetail: task.taskDetail,
+        status: task.status,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt,
+      }));
 
     res.status(200).json({ success: true, data: formattedTasks });
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching tasks:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 }
+
 
 // Get tasks by userId
 export async function getTasksByUserId(req, res) {
@@ -121,4 +125,3 @@ export async function getTaskById(req, res) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 }
-
