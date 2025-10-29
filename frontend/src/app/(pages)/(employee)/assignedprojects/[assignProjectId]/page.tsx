@@ -3,7 +3,14 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar, Loader2 } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import axios from "axios";
 import { notifyError, notifySuccess } from "@/lib/toast";
 import { useParams, useRouter } from "next/navigation";
@@ -26,16 +33,19 @@ export default function AssignedProjectDetailsPage() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  // ✅ Fetch tasks for this project
+  // Fetch tasks for this project
   useEffect(() => {
     if (!assignProjectId) return;
 
     const fetchProjectTasks = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/taskDetail/project/${assignProjectId}`);
+        const res = await axios.get(
+          `${API_BASE_URL}/taskDetail/project/${assignProjectId}`
+        );
         const data: AssignedTask[] = res.data.tasks || [];
         setTasks(data);
-        if (data.length > 0) setProjectName(data[0].project?.projectName || "Project");
+        if (data.length > 0)
+          setProjectName(data[0].project?.projectName || "Project");
       } catch (err) {
         console.error(err);
         notifyError("Failed to fetch project tasks");
@@ -47,17 +57,19 @@ export default function AssignedProjectDetailsPage() {
     fetchProjectTasks();
   }, [assignProjectId]);
 
-  // ✅ Mark task as done
+  // Mark task as done
   const handleMarkDone = async (taskId: string) => {
     try {
       await axios.put(`${API_BASE_URL}/taskDetail/${taskId}/mark-done`);
       notifySuccess("Task marked as completed!");
-      setTasks(prev =>
-        prev.map(t => (t._id === taskId ? { ...t, status: "completed" } : t))
+      setTasks((prev) =>
+        prev.map((t) => (t._id === taskId ? { ...t, status: "completed" } : t))
       );
     } catch (err: any) {
       console.error(err);
-      notifyError(err.response?.data?.message || "Failed to update task status");
+      notifyError(
+        err.response?.data?.message || "Failed to update task status"
+      );
     }
   };
 
@@ -72,15 +84,13 @@ export default function AssignedProjectDetailsPage() {
 
   if (loading)
     return (
-    <div className="flex items-center justify-center h-screen bg-gray-50">
-      <div className="flex flex-col items-center space-y-4">
-        <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
-        <p className="text-gray-700 text-lg font-semibold">
-          Loading...
-        </p>
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+          <p className="text-gray-700 text-lg font-semibold">Loading...</p>
+        </div>
       </div>
-    </div>
-  );
+    );
 
   if (!tasks.length)
     return (
@@ -95,8 +105,13 @@ export default function AssignedProjectDetailsPage() {
   return (
     <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-lg p-4 min-h-screen">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-900">{projectName} - Task Details</h2>
-        <Button onClick={() => router.back()} className="bg-gray-200 text-black hover:bg-gray-300">
+        <h2 className="text-xl font-bold text-gray-900">
+          {projectName} - Task Details
+        </h2>
+        <Button
+          onClick={() => router.back()}
+          className="bg-gray-200 text-black hover:bg-gray-300"
+        >
           ← Back
         </Button>
       </div>
@@ -114,7 +129,7 @@ export default function AssignedProjectDetailsPage() {
           </TableHeader>
 
           <TableBody>
-            {tasks.map(task => (
+            {tasks.map((task) => (
               <TableRow key={task._id} className="bg-white hover:bg-gray-50">
                 <TableCell>{task.taskDetail}</TableCell>
                 <TableCell>
@@ -127,14 +142,22 @@ export default function AssignedProjectDetailsPage() {
                 </TableCell>
                 <TableCell>
                   {task.status === "completed" ? (
-                    <span className="text-green-600 font-semibold">Completed</span>
+                    <span className="text-green-600 font-semibold">
+                      Completed
+                    </span>
                   ) : (
-                    <span className="text-yellow-600 font-semibold">Pending</span>
+                    <span className="text-yellow-600 font-semibold">
+                      Pending
+                    </span>
                   )}
                 </TableCell>
                 <TableCell>
                   {task.status !== "completed" && (
-                    <Button variant="outline" size="sm" onClick={() => handleMarkDone(task._id)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleMarkDone(task._id)}
+                    >
                       Mark as Done
                     </Button>
                   )}

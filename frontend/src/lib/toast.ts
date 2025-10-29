@@ -28,5 +28,5 @@ export const notifyWarning = (message: string, options?: ToastOptions) => {
 
 
 export const notifyDelete = (message: string, options?: ToastOptions) => {
-  toast.error(message, { ...defaultOptions, ...options }); // red background
+  toast.error(message, { ...defaultOptions, ...options }); 
 };

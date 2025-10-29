@@ -6,7 +6,6 @@ import { LogOut, LayoutDashboard, Clock, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useTask } from "@/context/TaskContext";
-import { notifySuccess, notifyError, notifyDelete } from "@/lib/toast"; 
 
 interface EmployeeSidebarProps {}
 
@@ -24,28 +23,17 @@ export default function EmployeeSidebar({}: EmployeeSidebarProps) {
     return "employee-dashboard";
   };
 
-  const [active, setActive] = useState<"employee-dashboard" | "assignedProjects" | "attendance">(
-    getSectionFromPath(pathname)
-  );
-
-  // Restore active section from localStorage on mount
-  // useEffect(() => {
-  //   const saved = localStorage.getItem("employeeActiveSection") as
-  //     | "employee-dashboard"
-  //     | "assignedProjects"
-  //     | "attendance"
-  //     | null;
-  //   if (saved) {
-  //     setActive(saved);
-  //     router.replace(sectionToRoute(saved));
-  //   }
-  // }, []);
+  const [active, setActive] = useState<
+    "employee-dashboard" | "assignedProjects" | "attendance"
+  >(getSectionFromPath(pathname));
 
   // Map section keys to routes
-  const sectionToRoute = (section: "employee-dashboard" | "assignedProjects" | "attendance") => {
+  const sectionToRoute = (
+    section: "employee-dashboard" | "assignedProjects" | "attendance"
+  ) => {
     switch (section) {
       case "employee-dashboard":
-        return "/employee-dashboard"; 
+        return "/employee-dashboard";
       case "assignedProjects":
         return "/assignedprojects";
       case "attendance":
@@ -55,48 +43,48 @@ export default function EmployeeSidebar({}: EmployeeSidebarProps) {
     }
   };
 
-  const handleClick = (section: "employee-dashboard" | "assignedProjects" | "attendance") => {
+  const handleClick = (
+    section: "employee-dashboard" | "assignedProjects" | "attendance"
+  ) => {
     setActive(section);
     setSelectedTask?.(null);
     localStorage.setItem("employeeActiveSection", section);
     router.push(sectionToRoute(section));
   };
 
-// Logout
+  // Logout
   const handleLogout = () => {
     logout();
-    // setActive("employee-dashboard");
-    // localStorage.setItem("employeeActiveSection", "employee-dashboard");
     router.push("/login");
   };
 
-
   const avatarText = useMemo(() => {
-  if (!user?.name && !user?.email) return "NA";
+    if (!user?.name && !user?.email) return "NA";
 
-  const name = user.name || user.email;
+    const name = user.name || user.email;
 
-  const words = name.split(" ").filter(Boolean); // remove empty strings
+    const words = name.split(" ").filter(Boolean);
 
-  if (words.length === 1) {
-    // take first 2 letters of the single word
-    return words[0].slice(0, 2).toUpperCase();
-  }
+    if (words.length === 1) {
+      return words[0].slice(0, 2).toUpperCase();
+    }
 
-  // take first letters of first 2 words
-  return words[0][0].toUpperCase() + words[1][0].toUpperCase();
-}, [user?.name, user?.email]);
-
+    return words[0][0].toUpperCase() + words[1][0].toUpperCase();
+  }, [user?.name, user?.email]);
 
   const sections = useMemo(
     () => [
       { key: "employee-dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { key: "assignedProjects", label: "Assigned Projects", icon: ClipboardList },
+      {
+        key: "assignedProjects",
+        label: "Assigned Projects",
+        icon: ClipboardList,
+      },
       { key: "attendance", label: "Attendance", icon: Clock },
     ],
     []
   );
-
+  
   return (
     <aside className="w-64 h-screen bg-gray-50 flex flex-col justify-between border-r border-gray-200 shadow-sm">
       <div className="p-4">

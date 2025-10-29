@@ -1,4 +1,3 @@
-// controllers/projectController.js
 import Project from "../models/project.model.js";
 
 // ✅ Create Project

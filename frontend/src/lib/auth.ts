@@ -1,4 +1,3 @@
-// utils/auth.ts
 export const setUser = (user: any) => {
   if (typeof window !== "undefined") {
     localStorage.setItem("user", JSON.stringify(user));

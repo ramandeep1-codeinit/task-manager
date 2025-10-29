@@ -232,25 +232,24 @@ export default function AddEmployeeSection() {
   return (
     <Card className="shadow-lg">
       <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-  <CardTitle className="text-xl font-bold">Employees</CardTitle>
+        <CardTitle className="text-xl font-bold">Employees</CardTitle>
 
-  <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-    <Input
-      placeholder="Search employee..."
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      className="h-10 md:w-64"
-    />
-    <Button
-      onClick={openAddDialog}
-      className="h-10 text-white bg-black flex items-center gap-1"
-      variant="outline"
-    >
-      <Plus className="w-4 h-4" /> Add Employee
-    </Button>
-  </div>
-</CardHeader>
-
+        <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+          <Input
+            placeholder="Search employee..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-10 md:w-64"
+          />
+          <Button
+            onClick={openAddDialog}
+            className="h-10 text-white bg-black flex items-center gap-1"
+            variant="outline"
+          >
+            <Plus className="w-4 h-4" /> Add Employee
+          </Button>
+        </div>
+      </CardHeader>
 
       <CardContent className="space-y-2">
         {filteredEmployees.length === 0 ? (

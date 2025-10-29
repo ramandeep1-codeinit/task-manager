@@ -14,7 +14,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { notifySuccess, notifyError, notifyWarning, notifyDelete } from "@/lib/toast";
+import {
+  notifySuccess,
+  notifyError,
+  notifyWarning,
+  notifyDelete,
+} from "@/lib/toast";
 import { useRouter } from "next/navigation";
 
 // Debounce hook
@@ -47,7 +52,6 @@ export default function ProjectsPage() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-
   const debouncedSearch = useDebounce(projectSearchQuery, 300);
 
   const fetchProjects = useCallback(async () => {
@@ -59,13 +63,17 @@ export default function ProjectsPage() {
     }
   }, []);
 
-  useEffect(() => { fetchProjects(); }, [fetchProjects]);
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const handleAddProject = useCallback(async () => {
     if (!newProject.trim()) return notifyWarning("Please enter a project name");
     setAdding(true);
     try {
-      await axios.post(`${API_BASE_URL}/projects/create`, { projectName: newProject.trim() });
+      await axios.post(`${API_BASE_URL}/projects/create`, {
+        projectName: newProject.trim(),
+      });
       setNewProject("");
       await fetchProjects();
       notifySuccess("Project added successfully");
@@ -77,7 +85,8 @@ export default function ProjectsPage() {
   }, [newProject, fetchProjects]);
 
   const handleSaveEdit = useCallback(async () => {
-    if (!editingProject?.projectName.trim()) return notifyWarning("Project name cannot be empty");
+    if (!editingProject?.projectName.trim())
+      return notifyWarning("Project name cannot be empty");
     setSaving(true);
     try {
       await axios.put(`${API_BASE_URL}/projects/${editingProject._id}`, {
@@ -109,18 +118,25 @@ export default function ProjectsPage() {
     }
   }, [deleteProject, fetchProjects]);
 
-  const handleCancelEdit = () => { setEditingProject(null); setOpenEditDialog(false); };
+  const handleCancelEdit = () => {
+    setEditingProject(null);
+    setOpenEditDialog(false);
+  };
 
   const filteredProjects = useMemo(() => {
     if (!debouncedSearch.trim()) return projects;
     const query = debouncedSearch.toLowerCase();
-    return projects.filter((proj) => proj.projectName.toLowerCase().includes(query));
+    return projects.filter((proj) =>
+      proj.projectName.toLowerCase().includes(query)
+    );
   }, [projects, debouncedSearch]);
 
   return (
     <Card className="shadow-lg">
       <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-        <CardTitle className="text-xl font-bold flex items-center gap-4">Manage Projects</CardTitle>
+        <CardTitle className="text-xl font-bold flex items-center gap-4">
+          Manage Projects
+        </CardTitle>
         <Input
           placeholder="Search project..."
           value={projectSearchQuery}
@@ -138,7 +154,11 @@ export default function ProjectsPage() {
             onChange={(e) => setNewProject(e.target.value)}
             className="flex-1 h-10"
           />
-          <Button onClick={handleAddProject} disabled={adding} className="h-10 flex items-center gap-1">
+          <Button
+            onClick={handleAddProject}
+            disabled={adding}
+            className="h-10 flex items-center gap-1"
+          >
             <Plus className="w-4 h-4" /> {adding ? "Adding..." : "Add Project"}
           </Button>
         </div>
@@ -160,10 +180,21 @@ export default function ProjectsPage() {
                   {proj.projectName}
                 </button>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => { setEditingProject(proj); setOpenEditDialog(true); }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditingProject(proj);
+                      setOpenEditDialog(true);
+                    }}
+                  >
                     <Edit2 className="w-4 h-4 text-blue-500" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setDeleteProject(proj)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setDeleteProject(proj)}
+                  >
                     <Trash2 className="w-4 h-4 text-red-500" />
                   </Button>
                 </div>
@@ -177,36 +208,61 @@ export default function ProjectsPage() {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Edit Project</DialogTitle>
-              <DialogDescription>Update the project name below</DialogDescription>
+              <DialogDescription>
+                Update the project name below
+              </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <Input
                 placeholder="Project Name"
                 value={editingProject?.projectName || ""}
                 onChange={(e) =>
-                  setEditingProject((prev) => prev ? { ...prev, projectName: e.target.value } : prev)
+                  setEditingProject((prev) =>
+                    prev ? { ...prev, projectName: e.target.value } : prev
+                  )
                 }
               />
               <DialogFooter className="flex justify-end gap-2">
-                <Button variant="outline" onClick={handleCancelEdit}>Cancel</Button>
-                <Button onClick={handleSaveEdit} disabled={saving}>{saving ? "Saving..." : "Save"}</Button>
+                <Button variant="outline" onClick={handleCancelEdit}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveEdit} disabled={saving}>
+                  {saving ? "Saving..." : "Save"}
+                </Button>
               </DialogFooter>
             </div>
           </DialogContent>
         </Dialog>
 
         {/* Delete Project Dialog */}
-        <Dialog open={!!deleteProject} onOpenChange={() => setDeleteProject(null)}>
+        <Dialog
+          open={!!deleteProject}
+          onOpenChange={() => setDeleteProject(null)}
+        >
           <DialogContent className="sm:max-w-sm">
             <DialogHeader>
               <DialogTitle>Delete Project</DialogTitle>
               <DialogDescription>
-                Are you sure you want to delete <span className="font-semibold">{deleteProject?.projectName}</span>?
+                Are you sure you want to delete{" "}
+                <span className="font-semibold">
+                  {deleteProject?.projectName}
+                </span>
+                ?
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteProject(null)} disabled={deleting}>Cancel</Button>
-              <Button className="bg-red-500 text-white" onClick={handleDeleteProject} disabled={deleting}>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteProject(null)}
+                disabled={deleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="bg-red-500 text-white"
+                onClick={handleDeleteProject}
+                disabled={deleting}
+              >
                 {deleting ? "Deleting..." : "Delete"}
               </Button>
             </DialogFooter>

@@ -10,12 +10,22 @@ import {
 
 const router = express.Router();
 
-router.post("/create", createTaskDetail);           
+// Create a new task
+router.post("/create", createTaskDetail);
+
+// Get all tasks for a specific project (by projectId)
 router.get("/project/:projectId", getTasksByProject);
-router.put("/:id", updateTaskDetail);                
-router.delete("/:id", deleteTaskDetail);  
+
+// Update task details (by task id)
+router.put("/:id", updateTaskDetail);
+
+// Delete a task (by task id)
+router.delete("/:id", deleteTaskDetail);
+
+// Get all tasks assigned to a specific user (by userId)
 router.get("/assigned/:userId", getTasksAssignedToUser);
 
+// Mark a task as done (by task id)
 router.put("/:id/mark-done", markTaskDone);
 
 export default router;

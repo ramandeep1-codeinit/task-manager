@@ -64,9 +64,8 @@ export async function getAllTasks(req, res) {
       .populate("userId", "userName")
       .select("-__v");
 
-    // ✅ Only include tasks that have a valid userId and userName
     const formattedTasks = tasks
-      .filter(task => task.userId && task.userId.userName) // remove N/A or null users
+      .filter(task => task.userId && task.userId.userName) 
       .map(task => ({
         _id: task._id,
         userId: task.userId._id,
@@ -95,7 +94,7 @@ export async function getTasksByUserId(req, res) {
       return res.status(400).json({ success: false, message: "User ID is required" });
     }
 
-    const tasks = await Task.find({ userId }).select("-__v"); // keep createdAt & updatedAt
+    const tasks = await Task.find({ userId }).select("-__v");
 
     res.status(200).json({ success: true, data: tasks });
   } catch (error) {

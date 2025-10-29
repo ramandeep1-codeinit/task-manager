@@ -2,7 +2,7 @@ import express from "express";
 import {
   addTask,
   deleteTask,
-  getAllTasks,    // ← manager endpoint
+  getAllTasks,   
   getTasksByUserId,
   getTaskById,
   updateTask,
@@ -16,9 +16,8 @@ const router = express.Router();
 // Create Task
 router.post("/createTask", validateResource(taskValidationSchema), addTask);
 
-
 // Manager: Get all tasks
-router.get("/users/task/all", getAllTasks); // <-- matches your frontend
+router.get("/users/task/all", getAllTasks);
 
 // Employee: Get tasks by userId
 router.get("/tasks/:userId", getTasksByUserId);

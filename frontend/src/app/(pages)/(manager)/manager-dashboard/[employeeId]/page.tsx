@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Funnel } from "lucide-react";
 
-// ---------- Interfaces ----------
+// Interfaces
 interface Task {
   _id: string;
   userId: string;
@@ -33,9 +33,9 @@ const FILTER_OPTIONS = [
   { label: "Year", value: "year" },
 ] as const;
 
-type FilterType = typeof FILTER_OPTIONS[number]["value"];
+type FilterType = (typeof FILTER_OPTIONS)[number]["value"];
 
-// ---------- Helpers ----------
+// Helpers
 function isDateInRange(dateStr?: string, filter?: FilterType) {
   if (!dateStr) return false;
   const date = new Date(dateStr);
@@ -52,7 +52,10 @@ function isDateInRange(dateStr?: string, filter?: FilterType) {
       return date >= startOfWeek && date <= endOfWeek;
     }
     case "month":
-      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+      return (
+        date.getMonth() === now.getMonth() &&
+        date.getFullYear() === now.getFullYear()
+      );
     case "year":
       return date.getFullYear() === now.getFullYear();
     case "all":
@@ -61,7 +64,7 @@ function isDateInRange(dateStr?: string, filter?: FilterType) {
   }
 }
 
-// ---------- Component ----------
+// Component
 export default function EmployeeTaskPage() {
   const { employeeId } = useParams();
   const router = useRouter();
@@ -75,11 +78,13 @@ export default function EmployeeTaskPage() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-
   // Close dropdown when clicked outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setShowFilterOptions(false);
       }
     };
@@ -120,17 +125,24 @@ export default function EmployeeTaskPage() {
   const { sortedTasks, highlightTaskId } = useMemo(() => {
     const filtered = tasks.filter((t) => isDateInRange(t.createdAt, filter));
     const sorted = filtered.sort(
-      (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
+      (a, b) =>
+        new Date(b.createdAt ?? 0).getTime() -
+        new Date(a.createdAt ?? 0).getTime()
     );
     const today = new Date().toDateString();
     const highlightId =
-      sorted.find((t) => t.createdAt && new Date(t.createdAt).toDateString() === today)?._id ??
-      sorted[0]?._id;
+      sorted.find(
+        (t) => t.createdAt && new Date(t.createdAt).toDateString() === today
+      )?._id ?? sorted[0]?._id;
     return { sortedTasks: sorted, highlightTaskId: highlightId };
   }, [tasks, filter]);
 
   if (loading)
-    return <div className="p-6 text-center text-gray-700">Loading employee tasks...</div>;
+    return (
+      <div className="p-6 text-center text-gray-700">
+        Loading employee tasks...
+      </div>
+    );
 
   if (!tasks || tasks.length === 0)
     return (
@@ -142,7 +154,6 @@ export default function EmployeeTaskPage() {
       </div>
     );
 
-  // ---------- Render ----------
   return (
     <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-lg p-4 min-h-screen">
       {/* Header */}
@@ -152,7 +163,10 @@ export default function EmployeeTaskPage() {
         </h2>
 
         <div className="flex items-center gap-2">
-          <Button onClick={() => router.back()} className="bg-gray-200 text-gray-800 hover:bg-gray-300">
+          <Button
+            onClick={() => router.back()}
+            className="bg-gray-200 text-gray-800 hover:bg-gray-300"
+          >
             ← Back
           </Button>
 
@@ -174,7 +188,9 @@ export default function EmployeeTaskPage() {
                       setShowFilterOptions(false);
                     }}
                     className={`w-full text-left px-4 py-2 rounded text-sm hover:bg-gray-100 ${
-                      filter === opt.value ? "bg-blue-500 text-white" : "text-gray-700"
+                      filter === opt.value
+                        ? "bg-blue-500 text-white"
+                        : "text-gray-700"
                     }`}
                   >
                     {opt.label}

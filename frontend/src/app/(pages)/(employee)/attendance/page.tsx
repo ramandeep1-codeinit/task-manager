@@ -17,7 +17,7 @@ export default function EmployeeAttendance() {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 
-  // ✅ Fetch today’s attendance
+  // Fetch today’s attendance
   const fetchAttendance = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/attendance/today`, {
@@ -33,7 +33,7 @@ export default function EmployeeAttendance() {
     fetchAttendance();
   }, []);
 
-  // ✅ Check In
+  // Check In
   const handleCheckIn = async () => {
     try {
       setLoading(true);
@@ -47,7 +47,7 @@ export default function EmployeeAttendance() {
     }
   };
 
-  // ✅ Start Break
+  // Start Break
   const handleStartBreak = async () => {
     try {
       setLoading(true);
@@ -62,7 +62,7 @@ export default function EmployeeAttendance() {
     }
   };
 
-  // ✅ End Break
+  // End Break
   const handleEndBreak = async () => {
     try {
       setLoading(true);
@@ -77,7 +77,7 @@ export default function EmployeeAttendance() {
     }
   };
 
-  // ✅ Check Out
+  // Check Out
   const handleCheckOut = async () => {
     try {
       setLoading(true);

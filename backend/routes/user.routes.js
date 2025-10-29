@@ -3,15 +3,19 @@ import { registerUser, loginUser, getAllUsers, updateUser, deleteUser } from '..
 
 const router = express.Router();
 
+// Register new user
 router.post('/register', registerUser);
+
+// Login existing user
 router.post('/login', loginUser);
 
-// ✅ Add this route
+// Get all users
 router.get('/all', getAllUsers);
 
-// ✅ Update user route (requires user id)
+// Update user route (requires user id)
 router.put('/:id', updateUser);
 
+// Delete user route (requires user id)
 router.delete('/:id', deleteUser);
 
 export default router;

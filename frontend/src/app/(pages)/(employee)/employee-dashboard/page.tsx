@@ -3,17 +3,40 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import AddTaskDialog from "@/components/employees/AddTaskDialogbox";
 import { useTask, Task } from "@/context/TaskContext";
 import { useAuth } from "@/context/AuthContext";
 import { notifySuccess, notifyError, notifyDelete } from "@/lib/toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function EmployeeDashboard() {
   const { user } = useAuth();
-  const { tasks, selectedTask, setSelectedTask, createTask, updateTask, deleteTask, getTasks, getTaskById } = useTask();
+  const {
+    tasks,
+    selectedTask,
+    setSelectedTask,
+    createTask,
+    updateTask,
+    deleteTask,
+    getTasks,
+    getTaskById,
+  } = useTask();
 
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -79,7 +102,11 @@ export default function EmployeeDashboard() {
   const formatDate = (dateString?: string) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" });
+    return date.toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   const sortedTasks = [...(tasks || [])].sort((a, b) => {
@@ -99,8 +126,13 @@ export default function EmployeeDashboard() {
 
       <Card className="shadow-lg">
         <CardHeader className="flex justify-between items-center">
-          <CardTitle className="text-xl md:text-2xl font-bold">Task List</CardTitle>
-          <Button className="bg-black text-white flex items-center gap-2" onClick={openAddDialog}>
+          <CardTitle className="text-xl md:text-2xl font-bold">
+            Task List
+          </CardTitle>
+          <Button
+            className="bg-black text-white flex items-center gap-2"
+            onClick={openAddDialog}
+          >
             <Plus className="h-4 w-4" /> Add Task
           </Button>
         </CardHeader>
@@ -126,10 +158,16 @@ export default function EmployeeDashboard() {
                     <TableCell>{formatDate(task.createdAt)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <button onClick={() => openEditDialog(task._id!)} className="text-blue-500 hover:text-blue-700">
+                        <button
+                          onClick={() => openEditDialog(task._id!)}
+                          className="text-blue-500 hover:text-blue-700"
+                        >
                           <Pencil className="h-4 w-4" />
                         </button>
-                        <button onClick={() => confirmDeleteTask(task)} className="text-red-500 hover:text-red-700">
+                        <button
+                          onClick={() => confirmDeleteTask(task)}
+                          className="text-red-500 hover:text-red-700"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
@@ -138,7 +176,9 @@ export default function EmployeeDashboard() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-gray-500">No tasks found.</TableCell>
+                  <TableCell colSpan={5} className="text-center text-gray-500">
+                    No tasks found.
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -150,11 +190,20 @@ export default function EmployeeDashboard() {
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Delete Task</DialogTitle>
-            <DialogDescription>Are you sure you want to delete this task? This action cannot be undone.</DialogDescription>
+            <DialogDescription>
+              Are you sure you want to delete this task?
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDeleteTask}>Delete</Button>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteTask}>
+              Delete
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

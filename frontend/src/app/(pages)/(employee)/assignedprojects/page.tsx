@@ -43,15 +43,18 @@ export default function AssignedProjects() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-
-  // ✅ Fetch assigned tasks
+  // Fetch assigned tasks
   const fetchAssignedTasks = useCallback(async () => {
     if (!user?.id) return;
     setLoading(true);
     try {
-      const res = await axios.get<{ tasks: AssignedTask[] }>(`${API_BASE_URL}/taskDetail/assigned/${user.id}`);
+      const res = await axios.get<{ tasks: AssignedTask[] }>(
+        `${API_BASE_URL}/taskDetail/assigned/${user.id}`
+      );
       const sorted = (res.data?.tasks ?? []).sort(
-        (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
+        (a, b) =>
+          new Date(b.createdAt ?? 0).getTime() -
+          new Date(a.createdAt ?? 0).getTime()
       );
       setTasks(sorted);
     } catch (err) {
@@ -66,7 +69,7 @@ export default function AssignedProjects() {
     fetchAssignedTasks();
   }, [fetchAssignedTasks]);
 
-  // ✅ Debounce search
+  // Debounce search
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = window.setTimeout(() => {
@@ -77,10 +80,13 @@ export default function AssignedProjects() {
     };
   }, [searchQuery]);
 
-  // ✅ Close dropdown when clicked outside
+  // Close dropdown when clicked outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setShowFilterOptions(false);
       }
     };
@@ -88,7 +94,7 @@ export default function AssignedProjects() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // ✅ Filter by date
+  // Filter by date
   const isDateInRange = useCallback(
     (dateStr?: string) => {
       if (!dateStr) return false;
@@ -106,7 +112,10 @@ export default function AssignedProjects() {
           return date >= start && date <= end;
         }
         case "month":
-          return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+          return (
+            date.getMonth() === now.getMonth() &&
+            date.getFullYear() === now.getFullYear()
+          );
         case "year":
           return date.getFullYear() === now.getFullYear();
         default:
@@ -116,7 +125,7 @@ export default function AssignedProjects() {
     [filter]
   );
 
-  // ✅ Group tasks by project
+  // Group tasks by project
   const tasksByProject = useMemo(() => {
     return tasks.reduce((acc: Record<string, AssignedTask[]>, task) => {
       const name = task.project.projectName || "Unknown Project";
@@ -126,7 +135,7 @@ export default function AssignedProjects() {
     }, {});
   }, [tasks]);
 
-  // ✅ Filter + search
+  // Filter + search
   const filteredProjects = useMemo(() => {
     const q = debouncedQuery;
     return Object.keys(tasksByProject).filter((name) => {
@@ -134,28 +143,28 @@ export default function AssignedProjects() {
       const hasMatchingTask = projectTasks.some(
         (t) =>
           (filter === "all" || isDateInRange(t.createdAt)) &&
-          (t.taskDetail.toLowerCase().includes(q) || name.toLowerCase().includes(q))
+          (t.taskDetail.toLowerCase().includes(q) ||
+            name.toLowerCase().includes(q))
       );
       return hasMatchingTask;
     });
   }, [tasksByProject, debouncedQuery, filter, isDateInRange]);
 
-  if (loading) (
+  if (loading)
     <div className="flex items-center justify-center h-screen bg-gray-50">
       <div className="flex flex-col items-center space-y-4">
         <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
-        <p className="text-gray-700 text-lg font-semibold">
-          Loading...
-        </p>
+        <p className="text-gray-700 text-lg font-semibold">Loading...</p>
       </div>
-    </div>
-  );
+    </div>;
 
   return (
     <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-lg p-4">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 mb-4">
-        <h2 className="text-xl font-bold text-gray-900">My Assigned Projects</h2>
+        <h2 className="text-xl font-bold text-gray-900">
+          My Assigned Projects
+        </h2>
 
         <div className="flex items-center gap-2">
           {/* Search */}
@@ -211,8 +220,8 @@ export default function AssignedProjects() {
               <div
                 key={projectId}
                 className="border rounded-xl p-4 bg-white shadow-sm hover:shadow-md cursor-pointer transition flex items-center gap-2"
-                onClick={() =>{
-                  router.push(`/assignedprojects/${projectId}`)
+                onClick={() => {
+                  router.push(`/assignedprojects/${projectId}`);
                 }}
               >
                 <span className="font-semibold text-gray-900">{name}</span>
@@ -221,7 +230,9 @@ export default function AssignedProjects() {
             );
           })
         ) : (
-          <p className="text-gray-500 text-center py-6">No projects / tasks found.</p>
+          <p className="text-gray-500 text-center py-6">
+            No projects / tasks found.
+          </p>
         )}
       </div>
     </div>

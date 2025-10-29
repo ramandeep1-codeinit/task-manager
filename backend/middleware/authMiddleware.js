@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
-import User from "../models/user.model.js"; // adjust path if needed
+import User from "../models/user.model.js";
 
 export const protect = async (req, res, next) => {
   try {
-    const token = req.cookies?.authToken; // same cookie name you used in login
+    const token = req.cookies?.authToken;
 
     if (!token) {
       return res.status(401).json({ message: "Not authorized, no token" });
@@ -16,7 +16,8 @@ export const protect = async (req, res, next) => {
       return res.status(401).json({ message: "User not found" });
     }
 
-    next(); // ✅ Continue to next middleware or controller
+    next(); 
+    
   } catch (error) {
     console.error("Auth Error:", error);
     return res.status(401).json({ message: "Not authorized, token failed" });

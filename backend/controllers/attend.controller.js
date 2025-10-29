@@ -1,11 +1,11 @@
 import Attendance from "../models/attendance.model.js";
 
-// ✅ Check-in
+// Check-in
 export const checkIn = async (req, res) => {
   try {
     const employeeId = req.user.id;
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // normalize date
+    today.setHours(0, 0, 0, 0);
 
     // Check if already checked in
     let attendance = await Attendance.findOne({ employeeId, date: today });
@@ -52,7 +52,7 @@ export const checkOut = async (req, res) => {
   }
 };
 
-// ✅ Start break
+// Start break
 export const startBreak = async (req, res) => {
   try {
     const employeeId = req.user.id;
@@ -71,7 +71,7 @@ export const startBreak = async (req, res) => {
   }
 };
 
-// ✅ End break
+// End break
 export const endBreak = async (req, res) => {
   try {
     const employeeId = req.user.id;
@@ -94,7 +94,7 @@ export const endBreak = async (req, res) => {
   }
 };
 
-// ✅ Today's attendance
+// Today's attendance
 export const getTodayAttendance = async (req, res) => {
   try {
     const employeeId = req.user.id;
@@ -108,7 +108,7 @@ export const getTodayAttendance = async (req, res) => {
   }
 };
 
-// ✅ Attendance history
+// Attendance history
 export const getAttendanceHistory = async (req, res) => {
   try {
     const employeeId = req.user.id;

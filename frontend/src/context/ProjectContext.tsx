@@ -1,7 +1,12 @@
-// context/ProjectContext.tsx
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 import api from "@/lib/api";
 
 export interface Project {
@@ -17,7 +22,9 @@ interface ProjectContextType {
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
-export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ProjectProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -46,6 +53,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
 export const useProject = () => {
   const context = useContext(ProjectContext);
-  if (!context) throw new Error("useProject must be used within ProjectProvider");
+  if (!context)
+    throw new Error("useProject must be used within ProjectProvider");
   return context;
 };

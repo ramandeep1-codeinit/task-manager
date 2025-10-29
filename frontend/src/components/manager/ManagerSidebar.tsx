@@ -20,10 +20,14 @@ export default function ManagerSidebar() {
     return "manager-dashboard";
   };
 
-  const [active, setActive] = useState<"manager-dashboard" | "projects" | "employeedetail">(getSectionFromPath(pathname));
+  const [active, setActive] = useState<
+    "manager-dashboard" | "projects" | "employeedetail"
+  >(getSectionFromPath(pathname));
 
   // Map section to route
-  const sectionToRoute = (section: "manager-dashboard" | "projects" | "employeedetail") => {
+  const sectionToRoute = (
+    section: "manager-dashboard" | "projects" | "employeedetail"
+  ) => {
     switch (section) {
       case "manager-dashboard":
         return "/manager-dashboard";
@@ -36,17 +40,10 @@ export default function ManagerSidebar() {
     }
   };
 
-  // Load saved section from localStorage
-  // useEffect(() => {
-  //   const saved = localStorage.getItem("managerActiveSection") as "manager-dashboard" | "projects" | "employeedetail" | null;
-  //   if (saved) {
-  //     setActive(saved);
-  //     router.replace(sectionToRoute(saved));
-  //   }
-  // }, [router]);
-
   // Handle sidebar clicks
-  const handleClick = (section: "manager-dashboard" | "projects" | "employeedetail") => {
+  const handleClick = (
+    section: "manager-dashboard" | "projects" | "employeedetail"
+  ) => {
     setActive(section);
     localStorage.setItem("managerActiveSection", section);
     router.push(sectionToRoute(section));
@@ -55,27 +52,23 @@ export default function ManagerSidebar() {
   // Logout
   const handleLogout = () => {
     logout();
-    setActive("manager-dashboard");
-    localStorage.setItem("managerActiveSection", "manager-dashboard");
     router.push("/login");
   };
 
   //Avtar
- const avatarText = useMemo(() => {
-   if (!user?.name && !user?.email) return "NA";
- 
-   const name = user.name || user.email;
- 
-   const words = name.split(" ").filter(Boolean); // remove empty strings
- 
-   if (words.length === 1) {
-     // take first 2 letters of the single word
-     return words[0].slice(0, 2).toUpperCase();
-   }
- 
-   // take first letters of first 2 words
-   return words[0][0].toUpperCase() + words[1][0].toUpperCase();
- }, [user?.name, user?.email]);
+  const avatarText = useMemo(() => {
+    if (!user?.name && !user?.email) return "NA";
+
+    const name = user.name || user.email;
+
+    const words = name.split(" ").filter(Boolean);
+
+    if (words.length === 1) {
+      return words[0].slice(0, 2).toUpperCase();
+    }
+
+    return words[0][0].toUpperCase() + words[1][0].toUpperCase();
+  }, [user?.name, user?.email]);
 
   const sections = useMemo(
     () => [

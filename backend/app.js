@@ -8,14 +8,11 @@ import projectRoutes from "./routes/project.routes.js";
 import attendanceRoutes from './routes/attendance.route.js';
 import taskDetailRoutes from "./routes/taskDetail.routes.js"; 
 
-
-
 import cors from 'cors';
 
 dotenv.config({path: './config.env'});
 
- const app = express();
-
+const app = express();
 
 app.use(cors({
   origin: "http://localhost:3000", // your Next.js frontend
@@ -47,12 +44,6 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/taskDetail", taskDetailRoutes);
 
-
-
-
-// app.get("/", (req, res) => {
-//     res.send("hello worlds");
-// });
 
 const PORT = process.env.PORT || 8080;
 
