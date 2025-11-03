@@ -5,10 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { User, Trash2, Pencil, Calendar, Plus } from "lucide-react";
-import axios from "axios";
+import { User, Trash2, Pencil, Calendar, Plus, Edit2 } from "lucide-react";
 import { notifySuccess, notifyError, notifyDelete } from "@/lib/toast";
 import { useAuth } from "@/context/AuthContext";
+import { useTaskDetail } from "@/context/TaskDetailContext";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useEmployee } from "@/context/EmployeeContext";
+import { useProject } from "@/context/ProjectContext";
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -51,14 +53,23 @@ export default function ProjectTaskPage() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const [project, setProject] = useState<{
-    _id: string;
-    projectName: string;
-  } | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [employees, setEmployees] = useState<
-    { _id: string; userName: string }[]
-  >([]);
+  // Use TaskDetailContext
+  const {
+    tasks,
+    getTasksByProject,
+    createTask,
+    updateTask,
+    deleteTask,
+    markTaskDone,
+  } = useTaskDetail();
+
+  // Use EmployeeContext
+  const { employees, getEmployees } = useEmployee();
+
+  //use ProjectContext
+  const { getProjectById } = useProject();
+
+  const [project, setProject] = useState<{ _id: string; projectName: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [taskModalOpen, setTaskModalOpen] = useState(false);
@@ -78,27 +89,27 @@ export default function ProjectTaskPage() {
   const debouncedEmployeeQuery = useDebounce(employeeSearchQuery, 300);
   const debouncedTaskQuery = useDebounce(taskSearchQuery, 300);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  // Fetch project details
+  // Fetch project with taskDetailContext
   const fetchProject = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/projects/${projectId}`);
-      setProject(res.data.project);
-    } catch {
-      notifyError("Failed to fetch project");
-    }
-  };
+  try {
+    const id = Array.isArray(projectId) ? projectId[0] : projectId;
+    if (!id) return;
 
-  // Fetch tasks
+    const project = await getProjectById(id);
+    setProject(project);
+  } catch (error) {
+    notifyError("Failed to fetch project");
+  }
+};
+
+
+  // Fetch tasks with taskDetailContext
   const fetchTasks = async () => {
     if (!projectId) return;
     setLoading(true);
     try {
-      const res = await axios.get(
-        `${API_BASE_URL}/taskDetail/project/${projectId}`
-      );
-      setTasks(res.data.tasks || []);
+      await getTasksByProject(projectId as string);
     } catch {
       notifyError("Failed to fetch tasks");
     } finally {
@@ -106,33 +117,18 @@ export default function ProjectTaskPage() {
     }
   };
 
-  // Fetch employees
-  const fetchEmployees = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/users/all`);
-      const users = Array.isArray(res.data)
-        ? res.data
-        : res.data?.users || res.data?.data || [];
-      setEmployees(users);
-    } catch {
-      notifyError("Failed to load employees");
-    }
-  };
-
   useEffect(() => {
     fetchProject();
     fetchTasks();
-    fetchEmployees();
+    getEmployees(); 
   }, [projectId]);
 
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      )
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -145,21 +141,21 @@ export default function ProjectTaskPage() {
     setDueDate(null);
   };
 
-  // Add or Edit Task
+  // Add or Edit Task 
   const handleAddOrEditTask = async () => {
     if (!newTask.trim()) return notifyError("Task detail cannot be empty");
     if (!project) return;
 
     try {
       if (editTaskId) {
-        await axios.put(`${API_BASE_URL}/taskDetail/${editTaskId}`, {
+        await updateTask(editTaskId, {
           taskDetail: newTask,
           assignedTo: assignedUser || undefined,
           dueDate: dueDate || undefined,
         });
         notifySuccess("Task updated successfully");
       } else {
-        await axios.post(`${API_BASE_URL}/taskDetail/create`, {
+        await createTask({
           project: project._id,
           taskDetail: newTask,
           createdBy: user?.id,
@@ -177,11 +173,12 @@ export default function ProjectTaskPage() {
     }
   };
 
+  // Delete Task using taskdetail context
   const handleDeleteTask = async () => {
     if (!deleteTaskId) return;
     setDeleting(true);
     try {
-      await axios.delete(`${API_BASE_URL}/taskDetail/${deleteTaskId}`);
+      await deleteTask(deleteTaskId);
       notifyDelete("Task deleted successfully");
       fetchTasks();
     } catch {
@@ -200,13 +197,12 @@ export default function ProjectTaskPage() {
     setTaskModalOpen(true);
   };
 
+  // Mark Task Done with taskdetailcontext
   const handleMarkAsDone = async (taskId: string) => {
     try {
-      await axios.put(`${API_BASE_URL}/taskDetail/${taskId}/mark-done`);
+      await markTaskDone(taskId);
       notifySuccess("Task marked as completed!");
-      setTasks((prev) =>
-        prev.map((t) => (t._id === taskId ? { ...t, status: "completed" } : t))
-      );
+      fetchTasks();
     } catch {
       notifyError("Failed to mark task done");
     }
@@ -214,17 +210,14 @@ export default function ProjectTaskPage() {
 
   const getBadgeColor = (userId: string) =>
     COLORS[
-      Math.abs(
-        userId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
-      ) % COLORS.length
+      Math.abs(userId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)) %
+        COLORS.length
     ];
 
   const filteredEmployees = useMemo(
     () =>
       employees.filter((emp) =>
-        emp.userName
-          .toLowerCase()
-          .includes(debouncedEmployeeQuery.toLowerCase())
+        emp.userName.toLowerCase().includes(debouncedEmployeeQuery.toLowerCase())
       ),
     [employees, debouncedEmployeeQuery]
   );
@@ -233,11 +226,9 @@ export default function ProjectTaskPage() {
     () =>
       tasks.filter(
         (task) =>
-          task.taskDetail
-            .toLowerCase()
-            .includes(debouncedTaskQuery.toLowerCase()) ||
+          task.taskDetail.toLowerCase().includes(debouncedTaskQuery.toLowerCase()) ||
           task.assignedTo?.userName
-            .toLowerCase()
+            ?.toLowerCase()
             .includes(debouncedTaskQuery.toLowerCase())
       ),
     [tasks, debouncedTaskQuery]
@@ -248,13 +239,10 @@ export default function ProjectTaskPage() {
 
   return (
     <div>
-      <Button
-        variant="outline"
-        className="mb-4"
-        onClick={() => router.push("/projects")}
-      >
+      <Button variant="outline" className="mb-4 cursor-pointer" onClick={() => router.push("/projects")}>
         ← Back to Projects
       </Button>
+
       <Card>
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
           <CardTitle className="text-xl font-semibold text-gray-800">
@@ -268,7 +256,7 @@ export default function ProjectTaskPage() {
               className="max-w-md h-9"
             />
             <Button
-              className="flex items-center gap-1 h-9"
+              className="flex items-center gap-1 h-9 cursor-pointer"
               onClick={() => {
                 resetTaskForm();
                 setTaskModalOpen(true);
@@ -292,9 +280,7 @@ export default function ProjectTaskPage() {
                   className="flex justify-between items-center bg-gray-50 px-4 py-3 border rounded-md shadow-sm hover:shadow-md transition-all"
                 >
                   <div>
-                    <p className="font-medium text-gray-800">
-                      {task.taskDetail}
-                    </p>
+                    <p className="font-medium text-gray-800">{task.taskDetail}</p>
                     <p className="text-sm text-gray-600 mt-1">
                       Assigned to:{" "}
                       {task.assignedTo && (
@@ -316,9 +302,7 @@ export default function ProjectTaskPage() {
                           | Assigned Date:{" "}
                           <span className="text-gray-500">
                             {task.createdAt
-                              ? new Date(task.createdAt).toLocaleDateString(
-                                  "en-GB"
-                                )
+                              ? new Date(task.createdAt).toLocaleDateString("en-GB")
                               : "-"}
                           </span>
                           {task.dueDate && (
@@ -326,9 +310,7 @@ export default function ProjectTaskPage() {
                               {" "}
                               | Due Date:{" "}
                               <span className="text-gray-500">
-                                {new Date(task.dueDate).toLocaleDateString(
-                                  "en-GB"
-                                )}
+                                {new Date(task.dueDate).toLocaleDateString("en-GB")}
                               </span>
                             </>
                           )}
@@ -337,28 +319,27 @@ export default function ProjectTaskPage() {
                     </p>
                   </div>
 
-                  <div className="flex gap-2">
-                    {user.role === "employee" &&
-                      task.status !== "completed" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleMarkAsDone(task._id)}
-                        >
-                          Mark as Done
-                        </Button>
-                      )}
+                  <div className="flex gap-5">
+                    {user.role === "employee" && task.status !== "completed" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleMarkAsDone(task._id)}
+                      >
+                        Mark as Done
+                      </Button>
+                    )}
                     <button
-                      className="p-1 rounded hover:bg-blue-100"
+                      className="cursor-pointer"
                       onClick={() => startEditing(task)}
                     >
-                      <Pencil className="w-4 h-4 text-blue-600" />
+                      <Edit2 className="text-blue-500 w-4 h-4" />
                     </button>
                     <button
-                      className="p-1 rounded hover:bg-red-100"
+                      className="cursor-pointer"
                       onClick={() => setDeleteTaskId(task._id)}
                     >
-                      <Trash2 className="w-4 h-4 text-red-600" />
+                      <Trash2 className="text-red-500 w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -368,123 +349,136 @@ export default function ProjectTaskPage() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Task Modal */}
+      {/* ✅ Add/Edit Task Modal */}
       <Dialog open={taskModalOpen} onOpenChange={() => setTaskModalOpen(false)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{editTaskId ? "Edit Task" : "Add Task"}</DialogTitle>
-            <DialogDescription>
-              Fill in the task details, assign employee, and set due date.
-            </DialogDescription>
-          </DialogHeader>
+  <DialogContent className="sm:max-w-lg rounded-2xl p-6">
+    <DialogHeader>
+      <DialogTitle className="text-xl font-semibold">
+        {editTaskId ? "Edit Task" : "Add Task"}
+      </DialogTitle>
+      <DialogDescription className="text-gray-500">
+        Fill in task details, assign an employee, and set a due date.
+      </DialogDescription>
+    </DialogHeader>
 
-          <div className="flex flex-col gap-3 mt-2">
-            <textarea
-              placeholder="Task detail..."
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-gray-300 resize-y min-h-[80px] max-h-[300px]"
-            />
+    <div className="space-y-5 mt-4">
 
-            {/* Employee dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <div
-                className="w-full border border-gray-200 rounded-lg bg-white shadow-sm px-3 py-2 cursor-pointer flex items-center justify-between hover:border-gray-300"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-              >
-                <span>
-                  {assignedUser
-                    ? employees.find((e) => e._id === assignedUser)?.userName
-                    : "-- Select Employee --"}
-                </span>
-                <svg
-                  className={`w-4 h-4 transition-transform duration-200 ${
-                    dropdownOpen ? "rotate-180" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
+      {/* ✅ Task Description */}
+      <div>
+        <textarea
+          placeholder="Task details..."
+          value={newTask}
+          onChange={(e) => setNewTask(e.target.value)}
+          className="w-full border border-gray-300 bg-gray-50 rounded-xl p-3 focus:bg-white transition focus:ring-2 focus:ring-gray-300 resize-none min-h-[100px]"
+        />
+      </div>
 
-              {dropdownOpen && (
-                <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-20">
-                  <div className="px-3 py-2">
-                    <Input
-                      placeholder="Search employee..."
-                      value={employeeSearchQuery}
-                      onChange={(e) => setEmployeeSearchQuery(e.target.value)}
-                      className="w-full text-sm"
-                      autoFocus
-                    />
-                  </div>
-                  {filteredEmployees.map((emp) => (
-                    <div
-                      key={emp._id}
-                      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-200 cursor-pointer"
-                      onClick={() => {
-                        setAssignedUser(emp._id);
-                        setDropdownOpen(false);
-                        setEmployeeSearchQuery("");
-                      }}
-                    >
-                      <User className="w-4 h-4" />
-                      <span className="capitalize">{emp.userName}</span>
-                    </div>
-                  ))}
-                  {filteredEmployees.length === 0 && (
-                    <div className="px-3 py-2 text-gray-500">
-                      No employees found
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+      {/* ✅ Employee Dropdown */}
+      <div className="relative" ref={dropdownRef}>
+        <div
+          className="w-full border border-gray-300 bg-gray-50 rounded-xl px-4 py-2.5 flex items-center justify-between cursor-pointer hover:bg-gray-100 transition"
+          onClick={() => setDropdownOpen(!dropdownOpen)}
+        >
+          <span className="text-gray-800">
+            {assignedUser
+              ? employees.find((e) => e._id === assignedUser)?.userName
+              : "-- Select Employee --"}
+          </span>
 
-            {/* Custom Calendar Bar */}
-            <div className="relative w-full">
-              <div
-                className="w-full border border-gray-300 rounded-lg bg-white shadow-sm px-3 py-2 flex items-center justify-between cursor-pointer hover:border-gray-300"
-                onClick={() => inputRef.current?.showPicker()}
-              >
-                <span className={dueDate ? "text-black" : "text-gray-400"}>
-                  {dueDate
-                    ? new Date(dueDate).toLocaleDateString("en-GB")
-                    : "Select Due Date"}
-                </span>
-                <Calendar className="w-5 h-5 text-gray-400" />
-              </div>
-              <input
-                type="date"
-                ref={inputRef}
-                value={dueDate || ""}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="absolute top-0 left-0 w-full h-full opacity-0 pointer-events-none"
+          <svg
+            className={`w-4 h-4 transition-transform duration-200 ${
+              dropdownOpen ? "rotate-180" : ""
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+
+        {dropdownOpen && (
+          <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-xl shadow-lg mt-2 max-h-60 overflow-y-auto z-30 animate-in fade-in slide-in-from-top-2">
+            {/* Search */}
+            <div className="px-3 py-2">
+              <Input
+                placeholder="Search employee..."
+                value={employeeSearchQuery}
+                onChange={(e) => setEmployeeSearchQuery(e.target.value)}
+                className="w-full text-sm"
+                autoFocus
               />
             </div>
+
+            {/* List */}
+            {filteredEmployees.map((emp) => (
+              <div
+                key={emp._id}
+                className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-gray-100 transition"
+                onClick={() => {
+                  setAssignedUser(emp._id);
+                  setDropdownOpen(false);
+                  setEmployeeSearchQuery("");
+                }}
+              >
+                <User className="w-4 h-4 text-gray-600" />
+                <span className="capitalize text-gray-800">{emp.userName}</span>
+              </div>
+            ))}
+
+            {filteredEmployees.length === 0 && (
+              <div className="px-4 py-3 text-gray-500 text-sm">No employees found</div>
+            )}
           </div>
+        )}
+      </div>
 
-          <DialogFooter className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setTaskModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddOrEditTask}>
-              {editTaskId ? "Update Task" : "Add Task"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* ✅ Due Date Picker */}
+      <div className="relative">
+        <div
+          className="w-full border border-gray-300 bg-gray-50 rounded-xl px-4 py-2.5 flex items-center justify-between cursor-pointer hover:bg-gray-100 transition"
+          onClick={() => inputRef.current?.showPicker()}
+        >
+          <span className={dueDate ? "text-gray-900" : "text-gray-400"}>
+            {dueDate
+              ? new Date(dueDate).toLocaleDateString("en-GB")
+              : "Select Due Date"}
+          </span>
+          <Calendar className="w-5 h-5 text-gray-400" />
+        </div>
 
-      {/* Delete Task Dialog */}
+        <input
+          type="date"
+          ref={inputRef}
+          value={dueDate || ""}
+          onChange={(e) => setDueDate(e.target.value)}
+          className="absolute top-0 left-0 w-full h-full opacity-0 pointer-events-none"
+        />
+      </div>
+    </div>
+
+    {/* ✅ Footer Buttons */}
+    <DialogFooter className="flex justify-end gap-3 mt-6">
+      <Button
+        variant="outline"
+        className="cursor-pointer rounded-lg"
+        onClick={() => setTaskModalOpen(false)}
+      >
+        Cancel
+      </Button>
+      <Button
+        className="cursor-pointer rounded-lg bg-black text-white hover:bg-gray-900"
+        onClick={handleAddOrEditTask}
+      >
+        {editTaskId ? "Update Task" : "Add Task"}
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+      {/* ✅ Delete Task Dialog */}
       <Dialog open={!!deleteTaskId} onOpenChange={() => setDeleteTaskId(null)}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Delete Task</DialogTitle>
             <DialogDescription>
@@ -494,13 +488,14 @@ export default function ProjectTaskPage() {
           <DialogFooter className="flex justify-end gap-2">
             <Button
               variant="outline"
+              className="cursor-pointer"
               onClick={() => setDeleteTaskId(null)}
               disabled={deleting}
             >
               Cancel
             </Button>
             <Button
-              className="bg-red-500 text-white"
+              className="bg-red-500 text-white cursor-pointer"
               onClick={handleDeleteTask}
               disabled={deleting}
             >

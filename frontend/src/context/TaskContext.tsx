@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import api from "@/lib/api";
 
-// Task interface
+// ✅ Task interface
 export interface Task {
   _id?: string;
   project: string;
@@ -22,7 +22,7 @@ export interface Task {
   updatedAt?: string;
 }
 
-// Context interface
+// ✅ Context interface FIXED ✅ added getTasksByProject
 interface TaskContextType {
   tasks: Task[];
   selectedTask: Task | null;
@@ -34,12 +34,14 @@ interface TaskContextType {
   createTask: (task: Task) => Promise<void>;
   updateTask: (id: string, task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
+  getTasksByProject: (projectId: string) => Promise<void>; 
+  getAssignedTasks: (userId: string) => Promise<Task[]>; 
 }
 
-// Create context
+// ✅ Create context
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
-// Provider
+// ✅ Provider
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
@@ -48,25 +50,20 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Fetch tasks based on user role
+  // ✅ Fetch tasks
   const getTasks = useCallback(async (role: string, userId?: string) => {
     setLoading(true);
     setError("");
     try {
-      // console.log("Fetching tasks for:", { role, userId });
-
       let res;
 
       if (role === "manager") {
-        // Manager sees all tasks
         res = await api.get("/users/task/all");
       } else {
-        // Employee must have userId
         if (!userId) throw new Error("User ID is missing for employee");
         res = await api.get(`/tasks/${userId}`);
       }
 
-      // Update tasks in state
       setTasks(res.data.data || res.data);
     } catch (err: any) {
       console.error("Error fetching tasks:", err);
@@ -78,7 +75,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
-  // Fetch a single task by ID
+  // ✅ Fetch a single task
   const getTaskById = async (id: string): Promise<Task | null> => {
     setLoading(true);
     setError("");
@@ -94,7 +91,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  // Create a new task
+  // ✅ Create task
   const createTask = async (taskData: Task) => {
     setLoading(true);
     setError("");
@@ -110,15 +107,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  // Update an existing task
+  // ✅ Update task
   const updateTask = async (id: string, taskData: Task) => {
     setLoading(true);
     setError("");
     try {
       const res = await api.put(`/update/tasks/${id}`, taskData);
-      const updated = res.data.data || res.data;
+      const updatedTask = res.data.data || res.data;
+
       setTasks((prev) =>
-        prev.map((t) => (t._id === id ? { ...t, ...updated } : t))
+        prev.map((t) => (t._id === id ? { ...t, ...updatedTask } : t))
       );
     } catch (err: any) {
       console.error("Error updating task:", err);
@@ -128,7 +126,27 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  // Delete a task
+  // ✅ FIX — make sure it's included in interface + provider
+  const getTasksByProject = async (projectId: string) => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/taskDetail/project/${projectId}`);
+      setTasks(res.data.data || []);
+    } catch (err) {
+      console.error("Failed to fetch tasks for project", err);
+      setError("Failed to load tasks");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+   // ✅ GET assigned tasks
+  const getAssignedTasks = async (userId: string) => {
+    const res = await api.get(`/taskDetail/assigned/${userId}`);
+    return res.data.tasks || [];
+  };
+
+  // ✅ Delete task
   const deleteTask = async (id: string) => {
     setLoading(true);
     setError("");
@@ -156,6 +174,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
         createTask,
         updateTask,
         deleteTask,
+        getTasksByProject,  
+        getAssignedTasks, 
       }}
     >
       {children}
@@ -163,7 +183,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
   );
 };
 
-// Custom hook
+// ✅ Custom hook
 export const useTask = (): TaskContextType => {
   const context = useContext(TaskContext);
   if (!context) {

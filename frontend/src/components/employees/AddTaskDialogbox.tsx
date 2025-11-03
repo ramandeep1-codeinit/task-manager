@@ -135,135 +135,142 @@ const handleSubmit = async (e: React.FormEvent) => {
   );
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{initialData ? "Edit Task" : "Add New Task"}</DialogTitle>
-          <DialogDescription>
-            {initialData ? "Update the task details." : "Select a project and enter task details."}
-          </DialogDescription>
-        </DialogHeader>
+   <Dialog open={open} onOpenChange={setOpen}>
+  <DialogContent className="sm:max-w-lg rounded-2xl p-6">
+    <DialogHeader>
+      <DialogTitle className="text-xl font-semibold">
+        {initialData ? "Edit Task" : "Add New Task"}
+      </DialogTitle>
+      <DialogDescription className="text-gray-500">
+        {initialData ? "Update the task details." : "Select a project and enter task information below."}
+      </DialogDescription>
+    </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          {/* Project Dropdown */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="project" className="text-right pt-2">
-              Project
-            </Label>
+    <div className="space-y-6 mt-4">
 
-            <div className="col-span-3 relative" ref={dropdownRef}>
-              <div
-                className="w-full border border-gray-300 rounded-lg bg-white shadow-sm px-3 py-2 cursor-pointer flex items-center justify-between hover:border-gray-300"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-              >
-                <span>{formData.project || "-- Select Project --"}</span>
-                <svg
-                  className={`w-4 h-4 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+      {/* ✅ Project Dropdown */}
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label className="text-right pt-2">Project</Label>
+
+        <div className="col-span-3 relative" ref={dropdownRef}>
+          <div
+            className="w-full border border-gray-300 bg-gray-50 rounded-xl px-3 py-2 cursor-pointer flex items-center justify-between hover:bg-gray-100 transition"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+          >
+            <span className="text-gray-800">
+              {formData.project || "-- Select Project --"}
+            </span>
+            <svg
+              className={`w-4 h-4 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+
+          {dropdownOpen && (
+            <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto mt-2 z-30 animate-in fade-in">
+              <div className="px-3 py-2">
+                <input
+                  type="text"
+                  placeholder="Search project..."
+                  value={projectSearchQuery}
+                  onChange={(e) => setProjectSearchQuery(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm"
+                  autoFocus
+                />
               </div>
 
-              {dropdownOpen && (
-                <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-20 mt-1">
-                  <div className="px-3 py-2">
-                    <input
-                      type="text"
-                      placeholder="Search project..."
-                      value={projectSearchQuery}
-                      onChange={(e) => setProjectSearchQuery(e.target.value)}
-                      className="w-full text-sm border border-gray-300 rounded-md px-2 py-1"
-                      autoFocus
-                    />
+              {filteredProjects.length > 0 ? (
+                filteredProjects.map((p) => (
+                  <div
+                    key={p._id}
+                    className="px-3 py-2 cursor-pointer hover:bg-gray-100 transition text-gray-800"
+                    onClick={() => {
+                      handleChange("project", p.projectName);
+                      setDropdownOpen(false);
+                      setProjectSearchQuery("");
+                    }}
+                  >
+                    {p.projectName}
                   </div>
-
-                  {filteredProjects.length > 0 ? (
-                    filteredProjects.map((p) => (
-                      <div
-                        key={p._id}
-                        className="px-3 py-2 cursor-pointer hover:bg-gray-200"
-                        onClick={() => {
-                          handleChange("project", p.projectName);
-                          setDropdownOpen(false);
-                          setProjectSearchQuery("");
-                        }}
-                      >
-                        {p.projectName}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="px-3 py-2 text-gray-500">No projects found</div>
-                  )}
-                </div>
+                ))
+              ) : (
+                <div className="px-3 py-3 text-gray-500 text-sm">No projects found</div>
               )}
             </div>
-          </div>
-
-          {/* Task Description */}
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor="desc" className="text-right pt-2">
-              Description
-            </Label>
-            <textarea
-              id="desc"
-              value={formData.taskDetail}
-              onChange={(e) => handleChange("taskDetail", e.target.value)}
-              className="col-span-3 border border-gray-300 rounded-md px-3 py-2 resize-none"
-              placeholder="Enter task description"
-              rows={4}
-            />
-          </div>
-
-          {/* Status Dropdown (custom) */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="status" className="text-right">
-              Status
-            </Label>
-            <div className="col-span-3 relative" ref={statusDropdownRef}>
-              <div
-                className="w-full border border-gray-300 rounded-lg bg-white shadow-sm px-3 py-2 cursor-pointer flex items-center justify-between hover:border-gray-300"
-                onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-              >
-                <span>{formData.status.charAt(0).toUpperCase() + formData.status.slice(1)}</span>
-                <svg
-                  className={`w-4 h-4 transition-transform duration-200 ${statusDropdownOpen ? "rotate-180" : ""}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-
-              {statusDropdownOpen && (
-                <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20 mt-1">
-                  {STATUS_OPTIONS.map((status) => (
-                    <div
-                      key={status}
-                      className="px-3 py-2 cursor-pointer hover:bg-gray-200"
-                      onClick={() => {
-                        handleChange("status", status);
-                        setStatusDropdownOpen(false);
-                      }}
-                    >
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          )}
         </div>
+      </div>
 
-        <DialogFooter>
-          <Button onClick={handleSubmit} className="bg-primary text-white w-full">
-            {initialData ? "Update Task" : "Save Task"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      {/* ✅ Task Description */}
+      <div className="grid grid-cols-4 gap-4">
+        <Label className="text-right pt-2">Description</Label>
+
+        <textarea
+          value={formData.taskDetail}
+          onChange={(e) => handleChange("taskDetail", e.target.value)}
+          className="col-span-3 border border-gray-300 rounded-xl px-3 py-2 bg-gray-50 focus:bg-white transition resize-none"
+          rows={4}
+          placeholder="Enter task description"
+        />
+      </div>
+
+      {/* ✅ Status Dropdown */}
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label className="text-right">Status</Label>
+
+        <div className="col-span-3 relative" ref={statusDropdownRef}>
+          <div
+            className="w-full border border-gray-300 bg-gray-50 rounded-xl px-3 py-2 cursor-pointer flex items-center justify-between hover:bg-gray-100 transition"
+            onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+          >
+            <span className="text-gray-800">
+              {formData.status.charAt(0).toUpperCase() + formData.status.slice(1)}
+            </span>
+            <svg
+              className={`w-4 h-4 transition-transform duration-200 ${statusDropdownOpen ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+
+          {statusDropdownOpen && (
+            <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-xl shadow-lg mt-2 z-30 animate-in fade-in">
+              {STATUS_OPTIONS.map((status) => (
+                <div
+                  key={status}
+                  className="px-3 py-2 cursor-pointer hover:bg-gray-100 transition text-gray-800"
+                  onClick={() => {
+                    handleChange("status", status);
+                    setStatusDropdownOpen(false);
+                  }}
+                >
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* ✅ Footer Button */}
+    <DialogFooter className="mt-6">
+      <Button
+        onClick={handleSubmit}
+        className="bg-black hover:bg-gray-900 text-white w-full rounded-xl py-2 cursor-pointer"
+      >
+        {initialData ? "Update Task" : "Save Task"}
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
   );
 }

@@ -11,65 +11,44 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import axios from "axios";
+
 import { notifyError, notifySuccess } from "@/lib/toast";
 import { useParams, useRouter } from "next/navigation";
-
-interface AssignedTask {
-  _id: string;
-  taskDetail: string;
-  createdAt?: string;
-  dueDate?: string;
-  status?: "pending" | "completed";
-  project?: { projectName: string };
-}
+import { useTaskDetail } from "@/context/TaskDetailContext";
 
 export default function AssignedProjectDetailsPage() {
   const { assignProjectId } = useParams();
   const router = useRouter();
-  const [tasks, setTasks] = useState<AssignedTask[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  // bring all functions and state from TaskDetailContext
+  const {
+    tasks,
+    loading,
+    error,
+    getTasksByProject,
+    markTaskDone,
+  } = useTaskDetail();
+
   const [projectName, setProjectName] = useState("");
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-  // Fetch tasks for this project
+  // load project tasks
   useEffect(() => {
     if (!assignProjectId) return;
 
-    const fetchProjectTasks = async () => {
-      try {
-        const res = await axios.get(
-          `${API_BASE_URL}/taskDetail/project/${assignProjectId}`
-        );
-        const data: AssignedTask[] = res.data.tasks || [];
-        setTasks(data);
-        if (data.length > 0)
-          setProjectName(data[0].project?.projectName || "Project");
-      } catch (err) {
-        console.error(err);
-        notifyError("Failed to fetch project tasks");
-      } finally {
-        setLoading(false);
+    getTasksByProject(assignProjectId as string).then(() => {
+      if (tasks.length > 0) {
+        setProjectName(tasks[0].project?.projectName || "Project");
       }
-    };
-
-    fetchProjectTasks();
+    });
   }, [assignProjectId]);
 
-  // Mark task as done
+  // mark task completed
   const handleMarkDone = async (taskId: string) => {
     try {
-      await axios.put(`${API_BASE_URL}/taskDetail/${taskId}/mark-done`);
+      await markTaskDone(taskId);
       notifySuccess("Task marked as completed!");
-      setTasks((prev) =>
-        prev.map((t) => (t._id === taskId ? { ...t, status: "completed" } : t))
-      );
     } catch (err: any) {
-      console.error(err);
-      notifyError(
-        err.response?.data?.message || "Failed to update task status"
-      );
+      notifyError(err.message || "Failed to mark task completed");
     }
   };
 
@@ -82,6 +61,7 @@ export default function AssignedProjectDetailsPage() {
         })
       : "-";
 
+  // Loading UI
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
@@ -92,11 +72,12 @@ export default function AssignedProjectDetailsPage() {
       </div>
     );
 
+  // If no tasks found
   if (!tasks.length)
     return (
       <div className="text-center mt-10">
         <p>No tasks found for this project.</p>
-        <Button className="mt-4" onClick={() => router.back()}>
+        <Button className="mt-4 cursor-pointer" onClick={() => router.back()}>
           ← Back
         </Button>
       </div>
@@ -110,12 +91,13 @@ export default function AssignedProjectDetailsPage() {
         </h2>
         <Button
           onClick={() => router.back()}
-          className="bg-gray-200 text-black hover:bg-gray-300"
+          className="bg-gray-200 text-black hover:bg-gray-300 cursor-pointer"
         >
           ← Back
         </Button>
       </div>
 
+      {/* Task Table */}
       <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-md bg-white">
         <Table className="min-w-full border-collapse">
           <TableHeader>
@@ -132,14 +114,17 @@ export default function AssignedProjectDetailsPage() {
             {tasks.map((task) => (
               <TableRow key={task._id} className="bg-white hover:bg-gray-50">
                 <TableCell>{task.taskDetail}</TableCell>
+
                 <TableCell>
                   <Calendar className="w-4 h-4 inline mr-1 text-gray-500" />
                   {formatDate(task.createdAt)}
                 </TableCell>
+
                 <TableCell>
                   <Calendar className="w-4 h-4 inline mr-1 text-gray-500" />
                   {formatDate(task.dueDate)}
                 </TableCell>
+
                 <TableCell>
                   {task.status === "completed" ? (
                     <span className="text-green-600 font-semibold">
@@ -151,12 +136,14 @@ export default function AssignedProjectDetailsPage() {
                     </span>
                   )}
                 </TableCell>
+
                 <TableCell>
                   {task.status !== "completed" && (
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleMarkDone(task._id)}
+                      className="cursor-pointer"
                     >
                       Mark as Done
                     </Button>

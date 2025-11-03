@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo, memo } from "react";
-import axios from "axios";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2, Plus, Eye, EyeOff, Pencil } from "lucide-react";
+import { Trash2, Plus, Eye, EyeOff, Edit2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,12 +13,15 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+
 import {
-  notifySuccess,
   notifyError,
+  notifySuccess,
   notifyWarning,
   notifyDelete,
 } from "@/lib/toast";
+
+import { useEmployee } from "@/context/EmployeeContext";
 
 // Debounce hook
 function useDebounce<T>(value: T, delay = 300): T {
@@ -44,17 +46,18 @@ interface EmployeeRowProps {
   onDelete: (emp: Employee) => void;
 }
 
-// Memoized row for performance
+// Memoized employee row
 const EmployeeRow = memo(({ emp, onEdit, onDelete }: EmployeeRowProps) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="border rounded-md overflow-hidden">
       <div
-        className="flex justify-between items-center bg-gray-50 px-4 py-2 cursor-pointer hover:bg-gray-100 transition"
+        className="flex justify-between items-center bg-gray-50 px-4 py-2 cursor-pointer hover:bg-gray-100"
         onClick={() => setExpanded((prev) => !prev)}
       >
         <span className="font-medium">{emp.userName}</span>
+
         <div className="flex gap-2">
           <Button
             variant="ghost"
@@ -63,9 +66,11 @@ const EmployeeRow = memo(({ emp, onEdit, onDelete }: EmployeeRowProps) => {
               e.stopPropagation();
               onEdit(emp);
             }}
+            className="cursor-pointer"
           >
-            <Pencil className="w-4 h-4 text-blue-500" />
+            <Edit2 className="w-4 h-4 text-blue-500" />
           </Button>
+
           <Button
             variant="ghost"
             size="sm"
@@ -73,6 +78,7 @@ const EmployeeRow = memo(({ emp, onEdit, onDelete }: EmployeeRowProps) => {
               e.stopPropagation();
               onDelete(emp);
             }}
+            className="cursor-pointer"
           >
             <Trash2 className="w-4 h-4 text-red-500" />
           </Button>
@@ -80,13 +86,9 @@ const EmployeeRow = memo(({ emp, onEdit, onDelete }: EmployeeRowProps) => {
       </div>
 
       {expanded && (
-        <div className="bg-gray-100 px-4 py-2 text-sm text-gray-700">
-          <p>
-            <strong>Email:</strong> {emp.email}
-          </p>
-          <p>
-            <strong>Role:</strong> {emp.role}
-          </p>
+        <div className="bg-gray-100 px-4 py-2 text-sm">
+          <p><strong>Email:</strong> {emp.email}</p>
+          <p><strong>Role:</strong> {emp.role}</p>
         </div>
       )}
     </div>
@@ -94,53 +96,48 @@ const EmployeeRow = memo(({ emp, onEdit, onDelete }: EmployeeRowProps) => {
 });
 
 export default function AddEmployeeSection() {
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const {
+    employees,
+    getEmployees,
+    registerEmployee,
+    updateEmployee,
+    deleteEmployee,
+  } = useEmployee();
+
   const [open, setOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
   const [form, setForm] = useState({
     userName: "",
     email: "",
     password: "",
     showPassword: false,
   });
-  const [deleteEmployee, setDeleteEmployee] = useState<Employee | null>(null);
-  const [deleting, setDeleting] = useState(false);
+
+  const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Fetch employees
-  const fetchEmployees = useCallback(async () => {
-    try {
-      const res = await axios.get("http://localhost:8080/api/users/all");
-      const data: Employee[] = Array.isArray(res.data?.data)
-        ? res.data.data
-        : [];
-      setEmployees(data);
-    } catch (err) {
-      console.error(err);
-      notifyError("Failed to fetch employees");
-    }
-  }, []);
-
+  //Fetch employees from EmployeeContext
   useEffect(() => {
-    fetchEmployees();
-  }, [fetchEmployees]);
-
-  // Input change handler
-  const handleInputChange = useCallback((field: string, value: any) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    getEmployees();
   }, []);
 
-  // Open dialogs
-  const openAddDialog = useCallback(() => {
+  // Input change
+  const handleInputChange = (field: string, value: any) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Open add dialog
+  const openAddDialog = () => {
     setEditingEmployee(null);
     setForm({ userName: "", email: "", password: "", showPassword: false });
     setOpen(true);
-  }, []);
+  };
 
-  const openEditDialog = useCallback((emp: Employee) => {
+  // Open edit dialog
+  const openEditDialog = (emp: Employee) => {
     setEditingEmployee(emp);
     setForm({
       userName: emp.userName,
@@ -149,103 +146,57 @@ export default function AddEmployeeSection() {
       showPassword: false,
     });
     setOpen(true);
-  }, []);
+  };
 
-  // Save employee
-  const handleSaveEmployee = useCallback(async () => {
+  // Save add/edit employee
+  const handleSaveEmployee = async () => {
     if (!form.userName || !form.email || (!editingEmployee && !form.password)) {
       notifyWarning("Please fill all required fields.");
       return;
     }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) {
-      notifyWarning("Please enter a valid email.");
-      return;
+    if (editingEmployee) {
+      await updateEmployee(editingEmployee._id, {
+        userName: form.userName,
+        email: form.email,
+        password: form.password || undefined,
+      });
+    } else {
+      await registerEmployee(form.userName, form.email, form.password);
     }
 
-    setLoading(true);
-    try {
-      if (editingEmployee) {
-        const payload: any = {
-          userName: form.userName,
-          email: form.email,
-          role: "Employee",
-        };
-        if (form.password) payload.password = form.password;
-        await axios.put(
-          `http://localhost:8080/api/users/${editingEmployee._id}`,
-          payload
-        );
-        notifySuccess("Employee updated successfully");
-      } else {
-        await axios.post("http://localhost:8080/api/users/register", {
-          userName: form.userName,
-          email: form.email,
-          password: form.password,
-          role: "Employee",
-        });
-        notifySuccess("Employee added successfully");
-      }
-      await fetchEmployees();
-      setOpen(false);
-    } catch (err: any) {
-      console.error(err);
-      notifyError(err.response?.data?.message || "Failed to save employee");
-    } finally {
-      setLoading(false);
-    }
-  }, [editingEmployee, form, fetchEmployees]);
+    setOpen(false);
+  };
 
   // Delete employee
-  const handleDeleteEmployee = useCallback(async () => {
-    if (!deleteEmployee) return;
-    setDeleting(true);
-    try {
-      await axios.delete(
-        `http://localhost:8080/api/users/${deleteEmployee._id}`
-      );
-      setEmployees((prev) =>
-        prev.filter((emp) => emp._id !== deleteEmployee._id)
-      );
-      notifyDelete("Employee deleted successfully");
-      setDeleteEmployee(null);
-    } catch (err) {
-      console.error(err);
-      notifyError("Failed to delete employee");
-    } finally {
-      setDeleting(false);
-    }
-  }, [deleteEmployee]);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    await deleteEmployee(deleteTarget._id);
+    setDeleteTarget(null);
+  };
 
-  // Filtered employees with debounced search
+  // Search filter
   const filteredEmployees = useMemo(() => {
     return employees.filter(
       (emp) =>
-        emp.userName
-          .toLowerCase()
-          .includes(debouncedSearchQuery.toLowerCase()) ||
+        emp.userName.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
         emp.email.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
     );
   }, [employees, debouncedSearchQuery]);
 
   return (
     <Card className="shadow-lg">
-      <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+      <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
         <CardTitle className="text-xl font-bold">Employees</CardTitle>
 
-        <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+        <div className="flex gap-2">
           <Input
             placeholder="Search employee..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-10 md:w-64"
+            className="md:w-64"
           />
-          <Button
-            onClick={openAddDialog}
-            className="h-10 text-white bg-black flex items-center gap-1"
-            variant="outline"
-          >
+
+          <Button onClick={openAddDialog} className="bg-black text-white cursor-pointer">
             <Plus className="w-4 h-4" /> Add Employee
           </Button>
         </div>
@@ -260,106 +211,111 @@ export default function AddEmployeeSection() {
               key={emp._id}
               emp={emp}
               onEdit={openEditDialog}
-              onDelete={setDeleteEmployee}
+              onDelete={setDeleteTarget}
             />
           ))
         )}
       </CardContent>
 
-      {/* Add/Edit Employee Dialog */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {editingEmployee ? "Edit Employee" : "Add New Employee"}
-            </DialogTitle>
-            <DialogDescription>
-              Form to {editingEmployee ? "edit" : "add"} employee details
-            </DialogDescription>
-          </DialogHeader>
+       {/* Add / Edit Dialog */}
+<Dialog open={open} onOpenChange={setOpen}>
+  <DialogContent className="rounded-2xl p-6">
+    <DialogHeader>
+      <DialogTitle className="text-xl font-semibold">
+        {editingEmployee ? "Edit Employee" : "Add New Employee"}
+      </DialogTitle>
+      <DialogDescription className="text-sm text-gray-500">
+        Fill in the employee details below.
+      </DialogDescription>
+    </DialogHeader>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSaveEmployee();
-            }}
-            className="grid gap-4 py-4 relative"
+    <div className="grid gap-5 py-3">
+      {/* Name */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Name</label>
+        <Input
+          placeholder="Enter name"
+          className="rounded-xl"
+          value={form.userName}
+          onChange={(e) => handleInputChange("userName", e.target.value)}
+        />
+      </div>
+
+      {/* Email */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Email</label>
+        <Input
+          placeholder="Enter email"
+          className="rounded-xl"
+          value={form.email}
+          onChange={(e) => handleInputChange("email", e.target.value)}
+        />
+      </div>
+
+      {/* Password with toggle */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Password</label>
+        <div className="relative">
+          <Input
+            placeholder="Enter password"
+            className="rounded-xl pr-10"
+            type={form.showPassword ? "text" : "password"}
+            value={form.password}
+            onChange={(e) => handleInputChange("password", e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() =>
+              handleInputChange("showPassword", !form.showPassword)
+            }
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-black transition cursor-pointer"
           >
-            <Input
-              placeholder="Name"
-              value={form.userName}
-              onChange={(e) => handleInputChange("userName", e.target.value)}
-            />
-            <Input
-              placeholder="Email"
-              value={form.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
-            />
-            <div className="relative">
-              <Input
-                placeholder="Password"
-                type={form.showPassword ? "text" : "password"}
-                value={form.password}
-                onChange={(e) => handleInputChange("password", e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() =>
-                  handleInputChange("showPassword", !form.showPassword)
-                }
-                className="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none text-gray-500"
-              >
-                {form.showPassword ? <EyeOff /> : <Eye />}
-              </button>
-            </div>
-            <Input
-              placeholder="Role"
-              value="Employee"
-              disabled
-              className="bg-gray-100 cursor-not-allowed"
-            />
+            {form.showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+      </div>
 
-            <DialogFooter>
-              <Button
-                type="submit"
-                className="bg-primary text-white w-full"
-                disabled={loading}
-              >
-                {editingEmployee ? "Update Employee" : "Add Employee"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Role */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Role</label>
+        <Input
+          placeholder="Employee"
+          className="rounded-xl bg-gray-100"
+          value="Employee"
+          disabled
+        />
+      </div>
+    </div>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={!!deleteEmployee}
-        onOpenChange={() => setDeleteEmployee(null)}
+    <DialogFooter>
+      <Button
+        className="w-full rounded-xl bg-black hover:bg-gray-900 text-white py-2.5"
+        onClick={handleSaveEmployee}
       >
-        <DialogContent className="sm:max-w-sm">
+        {editingEmployee ? "Update Employee" : "Add Employee"}
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+      {/* Delete Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Employee</DialogTitle>
+            <DialogTitle>Delete Employee?</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete{" "}
-              <span className="font-semibold">{deleteEmployee?.userName}</span>?
+              <strong>{deleteTarget?.userName}</strong>?
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setDeleteEmployee(null)}
-              disabled={deleting}
-            >
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
               Cancel
             </Button>
-            <Button
-              className="bg-red-500 text-white"
-              onClick={handleDeleteEmployee}
-              disabled={deleting}
-            >
-              {deleting ? "Deleting..." : "Delete"}
+
+            <Button className="bg-red-500 text-white" onClick={confirmDelete}>
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -3,9 +3,11 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { TaskProvider } from "@/context/TaskContext";
-import { ProjectProvider } from "@/context/ProjectContext"; // ✅ add ProjectProvider
+import { ProjectProvider } from "@/context/ProjectContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { TaskDetailProvider } from "@/context/TaskDetailContext";
+import { EmployeeProvider } from "@/context/EmployeeContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,8 +35,12 @@ export default function RootLayout({
         <AuthProvider>
           <ProjectProvider>
             <TaskProvider>
+              <TaskDetailProvider>
+                <EmployeeProvider>
               {children}
               <ToastContainer />
+              </EmployeeProvider>
+              </TaskDetailProvider>
             </TaskProvider>
           </ProjectProvider>
         </AuthProvider>

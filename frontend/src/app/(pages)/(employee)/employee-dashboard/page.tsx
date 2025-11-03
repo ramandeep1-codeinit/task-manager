@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Edit2 } from "lucide-react";
 import AddTaskDialog from "@/components/employees/AddTaskDialogbox";
 import { useTask, Task } from "@/context/TaskContext";
 import { useAuth } from "@/context/AuthContext";
@@ -116,7 +116,7 @@ export default function EmployeeDashboard() {
   });
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="p-4 md:p-1">
       <AddTaskDialog
         open={openDialog}
         setOpen={setOpenDialog}
@@ -130,7 +130,7 @@ export default function EmployeeDashboard() {
             Task List
           </CardTitle>
           <Button
-            className="bg-black text-white flex items-center gap-2"
+            className="bg-black text-white flex items-center gap-2 cursor-pointer"
             onClick={openAddDialog}
           >
             <Plus className="h-4 w-4" /> Add Task
@@ -157,18 +157,18 @@ export default function EmployeeDashboard() {
                     <TableCell>{task.status || "N/A"}</TableCell>
                     <TableCell>{formatDate(task.createdAt)}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-4">
                         <button
                           onClick={() => openEditDialog(task._id!)}
                           className="text-blue-500 hover:text-blue-700"
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Edit2 className="h-4 w-4 cursor-pointer" />
                         </button>
                         <button
                           onClick={() => confirmDeleteTask(task)}
                           className="text-red-500 hover:text-red-700"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 cursor-pointer" />
                         </button>
                       </div>
                     </TableCell>
@@ -187,7 +187,7 @@ export default function EmployeeDashboard() {
       </Card>
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Delete Task</DialogTitle>
             <DialogDescription>

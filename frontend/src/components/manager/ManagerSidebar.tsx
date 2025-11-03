@@ -104,7 +104,7 @@ export default function ManagerSidebar() {
               <button
                 key={section.key}
                 onClick={() => handleClick(section.key as any)}
-                className={`flex items-center w-full px-6 py-3 text-sm font-medium transition-all duration-200 rounded-lg ${
+                className={`flex items-center w-full px-6 py-3 text-sm font-medium transition-all duration-200 rounded-lg cursor-pointer ${
                   isActive
                     ? "bg-indigo-100 text-indigo-700 font-semibold"
                     : "text-gray-700 hover:bg-gray-100"
@@ -122,7 +122,7 @@ export default function ManagerSidebar() {
       <div className="mt-auto p-4">
         <Button
           variant="outline"
-          className="w-full flex items-center justify-center gap-2 px-2 py-1 text-sm h-8 hover:bg-gray-100 hover:text-accent-foreground"
+          className="w-full flex items-center justify-center gap-2 px-2 py-1 text-sm h-8 hover:bg-gray-100 hover:text-accent-foreground cursor-pointer"
           onClick={handleLogout}
         >
           <LogOut className="h-4 w-4" />
