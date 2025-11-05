@@ -25,7 +25,7 @@ export const checkIn = async (req, res) => {
   }
 };
 
-// ✅ Check-out
+// Check-out
 export const checkOut = async (req, res) => {
   try {
     const employeeId = req.user.id;

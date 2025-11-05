@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { notifyError } from "@/lib/toast";
 import {
   CheckCircle,
   Clock,
@@ -287,7 +286,7 @@ export default function ManagerDashboard() {
     <p className="text-2xl font-bold text-orange-600">{inProgressCount}</p>
   </div>
 
-  {/* ✅ Pending (NEW) */}
+  {/* Pending */}
   <div className="relative bg-white rounded-xl shadow p-4 border-t-4 border-yellow-500">
     <div className="absolute top-3 right-3 bg-yellow-100 p-2 rounded-full">
       <Hourglass className="h-5 w-5 text-yellow-600" />
@@ -306,7 +305,6 @@ export default function ManagerDashboard() {
   </div>
 
 </div>
-
 
         {/* Employee Task List */}
         <CardContent className="space-y-4">

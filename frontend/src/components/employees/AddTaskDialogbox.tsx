@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
-import { notifyError, notifySuccess } from "@/lib/toast";
+import { notifyError } from "@/lib/toast";
 
 
 export interface Task {
@@ -148,7 +148,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     <div className="space-y-6 mt-4">
 
-      {/* ✅ Project Dropdown */}
+      {/* Project Dropdown */}
       <div className="grid grid-cols-4 items-center gap-4">
         <Label className="text-right pt-2">Project</Label>
 
@@ -205,7 +205,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
       </div>
 
-      {/* ✅ Task Description */}
+      {/* Task Description */}
       <div className="grid grid-cols-4 gap-4">
         <Label className="text-right pt-2">Description</Label>
 
@@ -218,7 +218,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         />
       </div>
 
-      {/* ✅ Status Dropdown */}
+      {/* Status Dropdown */}
       <div className="grid grid-cols-4 items-center gap-4">
         <Label className="text-right">Status</Label>
 
@@ -260,7 +260,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       </div>
     </div>
 
-    {/* ✅ Footer Button */}
+    {/* Footer Button */}
     <DialogFooter className="mt-6">
       <Button
         onClick={handleSubmit}

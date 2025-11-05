@@ -1,6 +1,6 @@
 import Project from "../models/project.model.js";
 
-// ✅ Create Project
+// Create Project
 export const createProject = async (req, res) => {
   try {
     const { projectName } = req.body;
@@ -22,7 +22,7 @@ export const createProject = async (req, res) => {
   }
 };
 
-// ✅ Get All Projects
+// Get All Projects
 export const getAllProjects = async (req, res) => {
   try {
     const projects = await Project.find();
@@ -37,7 +37,7 @@ export const getAllProjects = async (req, res) => {
   }
 };
 
-// ✅ Delete Project by ID
+// Delete Project by ID
 export const deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
@@ -56,7 +56,7 @@ export const deleteProject = async (req, res) => {
   }
 };
 
-// ✅ Update Project by ID
+// Update Project by ID
 export const updateProject = async (req, res) => {
   try {
     const { id } = req.params;

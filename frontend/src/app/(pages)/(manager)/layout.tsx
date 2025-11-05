@@ -3,7 +3,6 @@
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
 import ManagerSidebar from "@/components/manager/ManagerSidebar";
-
 export default function ManagerDashboardLayout({
   children,
 }: {
@@ -16,14 +15,13 @@ export default function ManagerDashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50">    
       {/* Sidebar */}
       {user.role?.toLowerCase() === "manager" && (
         <aside className="w-64 border-r border-gray-200 hidden md:block sticky top-0 h-screen">
           <ManagerSidebar />
         </aside>
       )}
-
       {/* Main content */}
       <main className="flex-1 p-4 md:p-8 overflow-y-auto">{children}</main>
     </div>

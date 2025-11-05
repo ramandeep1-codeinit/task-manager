@@ -29,7 +29,7 @@ export const createTaskDetail = async (req, res) => {
   }
 };
 
-// 📄 Get all tasks of a single project
+// Get all tasks of a single project
 export const getTasksByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -49,7 +49,7 @@ export const getTasksByProject = async (req, res) => {
   }
 };
 
-// ✏️ Update a task by ID
+// Update a task by ID
 export const updateTaskDetail = async (req, res) => {
   try {
     const { id } = req.params;
@@ -76,7 +76,7 @@ export const updateTaskDetail = async (req, res) => {
   }
 };
 
-// 🗑️ Delete a task by ID
+// Delete a task by ID
 export const deleteTaskDetail = async (req, res) => {
   try {
     const { id } = req.params;

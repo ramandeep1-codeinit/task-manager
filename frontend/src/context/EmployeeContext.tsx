@@ -33,7 +33,7 @@ const EmployeeContext = createContext<EmployeeContextType | undefined>(
 export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
 
-  // ✅ Fetch all employees (same as AddEmployeeSection)
+  // Fetch all employees (same as AddEmployeeSection)
   const getEmployees = async () => {
     try {
       const res = await api.get("/users/all");
@@ -48,7 +48,7 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // ✅ Register employee (same payload used in AddEmployeeSection)
+  // Register employee (same payload used in AddEmployeeSection)
   const registerEmployee = async (
     userName: string,
     email: string,
@@ -70,7 +70,7 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // ✅ Update employee (perfectly matched with AddEmployeeSection)
+  // Update employee (matched with AddEmployeeSection)
   const updateEmployee = async (
     id: string,
     data: Partial<Employee> & { password?: string }
@@ -96,7 +96,7 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // ✅ Delete employee (same as AddEmployeeSection)
+  // Delete employee
   const deleteEmployee = async (id: string) => {
     try {
       await api.delete(`/users/${id}`);

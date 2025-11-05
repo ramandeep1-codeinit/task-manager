@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import api from "@/lib/api";
 
-// ✅ Task interface
+// task interface
 export interface Task {
   _id?: string;
   project: string;
@@ -22,7 +22,7 @@ export interface Task {
   updatedAt?: string;
 }
 
-// ✅ Context interface FIXED ✅ added getTasksByProject
+// Context interface FIXED added getTasksByProject
 interface TaskContextType {
   tasks: Task[];
   selectedTask: Task | null;
@@ -38,10 +38,10 @@ interface TaskContextType {
   getAssignedTasks: (userId: string) => Promise<Task[]>; 
 }
 
-// ✅ Create context
+// Create context
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
-// ✅ Provider
+// Provider
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
@@ -50,7 +50,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ✅ Fetch tasks
+  // Fetch tasks
   const getTasks = useCallback(async (role: string, userId?: string) => {
     setLoading(true);
     setError("");
@@ -75,7 +75,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
-  // ✅ Fetch a single task
+  // Fetch a single task
   const getTaskById = async (id: string): Promise<Task | null> => {
     setLoading(true);
     setError("");
@@ -91,7 +91,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  // ✅ Create task
+  // Create task
   const createTask = async (taskData: Task) => {
     setLoading(true);
     setError("");
@@ -107,7 +107,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  // ✅ Update task
+  // Update task
   const updateTask = async (id: string, taskData: Task) => {
     setLoading(true);
     setError("");
@@ -126,7 +126,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  // ✅ FIX — make sure it's included in interface + provider
+  // FIX — make sure it's included in interface + provider
   const getTasksByProject = async (projectId: string) => {
     setLoading(true);
     try {
@@ -140,13 +140,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-   // ✅ GET assigned tasks
+   // GET assigned tasks
   const getAssignedTasks = async (userId: string) => {
     const res = await api.get(`/taskDetail/assigned/${userId}`);
     return res.data.tasks || [];
   };
 
-  // ✅ Delete task
+  // Delete task
   const deleteTask = async (id: string) => {
     setLoading(true);
     setError("");
@@ -183,7 +183,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({
   );
 };
 
-// ✅ Custom hook
+// Custom hook
 export const useTask = (): TaskContextType => {
   const context = useContext(TaskContext);
   if (!context) {

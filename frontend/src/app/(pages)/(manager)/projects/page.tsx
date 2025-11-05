@@ -44,7 +44,7 @@ export default function ProjectsPage() {
   const debouncedSearch = useDebounce(search);
 
   // Dialog states
-  const [adding, setAdding] = useState(false); // ✅ NEW POPUP STATE
+  const [adding, setAdding] = useState(false); // NEW POPUP STATE
   const [editing, setEditing] = useState<Project | null>(null);
   const [deleting, setDeleting] = useState<Project | null>(null);
 
@@ -57,7 +57,7 @@ export default function ProjectsPage() {
     getProjects();
   }, []);
 
-  // Add New Project (POPUP)
+  // add new project pop
   const handleAddProject = async () => {
     if (!newProject.trim()) return notifyWarning("Enter project name");
 
@@ -66,7 +66,7 @@ export default function ProjectsPage() {
       await createProject(newProject.trim());
       notifySuccess("Project added");
       setNewProject("");
-      setAdding(false); // ✅ close popup
+      setAdding(false); 
     } catch {
       notifyError("Failed to add project");
     } finally {
@@ -135,9 +135,8 @@ export default function ProjectsPage() {
   </div>
 </CardHeader>
 
-
       <CardContent>
-        {/* ✅ Project List */}
+        {/* Project List */}
         <div className="space-y-2 max-h-[400px] overflow-y-auto">
           {filteredProjects.length === 0 ? (
             <p className="text-gray-500 text-sm">No matching results.</p>
@@ -177,7 +176,7 @@ export default function ProjectsPage() {
           )}
         </div>
 
-        {/* ✅ Add Project Dialog */}
+        {/* Add Project Dialog */}
         <Dialog open={adding} onOpenChange={setAdding}>
           <DialogContent className="sm:max-w-md ">
             <DialogHeader>
@@ -202,7 +201,7 @@ export default function ProjectsPage() {
           </DialogContent>
         </Dialog>
 
-        {/* ✅ Edit Dialog */}
+        {/* Edit Dialog */}
         <Dialog open={!!editing} onOpenChange={() => setEditing(null)}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -232,7 +231,7 @@ export default function ProjectsPage() {
           </DialogContent>
         </Dialog>
 
-        {/* ✅ Delete Dialog */}
+        {/* Delete Dialog */}
         <Dialog open={!!deleting} onOpenChange={() => setDeleting(null)}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>

@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Funnel } from "lucide-react";
-import { useTask } from "@/context/TaskContext"; // ✅ use context
+import { useTask } from "@/context/TaskContext";
 
 // Filter Options
 const FILTER_OPTIONS = [
@@ -25,7 +25,6 @@ const FILTER_OPTIONS = [
 
 type FilterType = (typeof FILTER_OPTIONS)[number]["value"];
 
-// ✅ Helper: Filter by createdAt date
 function isDateInRange(dateStr?: string, filter?: FilterType) {
   if (!dateStr) return false;
   const date = new Date(dateStr);

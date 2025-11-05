@@ -103,7 +103,6 @@ export default function ProjectTaskPage() {
   }
 };
 
-
   // Fetch tasks with taskDetailContext
   const fetchTasks = async () => {
     if (!projectId) return;
@@ -349,7 +348,7 @@ export default function ProjectTaskPage() {
         </CardContent>
       </Card>
 
-      {/* ✅ Add/Edit Task Modal */}
+      {/* Add/Edit Task Modal */}
       <Dialog open={taskModalOpen} onOpenChange={() => setTaskModalOpen(false)}>
   <DialogContent className="sm:max-w-lg rounded-2xl p-6">
     <DialogHeader>
@@ -363,7 +362,7 @@ export default function ProjectTaskPage() {
 
     <div className="space-y-5 mt-4">
 
-      {/* ✅ Task Description */}
+      {/* Task Description */}
       <div>
         <textarea
           placeholder="Task details..."
@@ -373,7 +372,7 @@ export default function ProjectTaskPage() {
         />
       </div>
 
-      {/* ✅ Employee Dropdown */}
+      {/* Employee Dropdown */}
       <div className="relative" ref={dropdownRef}>
         <div
           className="w-full border border-gray-300 bg-gray-50 rounded-xl px-4 py-2.5 flex items-center justify-between cursor-pointer hover:bg-gray-100 transition"
@@ -433,7 +432,7 @@ export default function ProjectTaskPage() {
         )}
       </div>
 
-      {/* ✅ Due Date Picker */}
+      {/* Due Date Picker */}
       <div className="relative">
         <div
           className="w-full border border-gray-300 bg-gray-50 rounded-xl px-4 py-2.5 flex items-center justify-between cursor-pointer hover:bg-gray-100 transition"
@@ -457,7 +456,7 @@ export default function ProjectTaskPage() {
       </div>
     </div>
 
-    {/* ✅ Footer Buttons */}
+    {/* Footer Buttons */}
     <DialogFooter className="flex justify-end gap-3 mt-6">
       <Button
         variant="outline"
@@ -476,7 +475,7 @@ export default function ProjectTaskPage() {
   </DialogContent>
 </Dialog>
 
-      {/* ✅ Delete Task Dialog */}
+      {/* Delete Task Dialog */}
       <Dialog open={!!deleteTaskId} onOpenChange={() => setDeleteTaskId(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

@@ -7,7 +7,6 @@ import taskRoutes from './routes/task.routes.js';
 import projectRoutes from "./routes/project.routes.js";
 import attendanceRoutes from './routes/attendance.route.js';
 import taskDetailRoutes from "./routes/taskDetail.routes.js"; 
-
 import cors from 'cors';
 
 dotenv.config({path: './config.env'});
@@ -43,7 +42,6 @@ app.use("/api", taskRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/taskDetail", taskDetailRoutes);
-
 
 const PORT = process.env.PORT || 8080;
 
