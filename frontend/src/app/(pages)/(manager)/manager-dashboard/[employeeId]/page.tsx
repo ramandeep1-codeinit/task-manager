@@ -61,7 +61,7 @@ export default function EmployeeTaskPage() {
   const { employeeId } = useParams();
   const router = useRouter();
 
-  const { tasks, loading, getTasks } = useTask(); // using TaskCcontext
+  const { tasks, loading, getTasks } = useTask(); // using TaskContext
 
   const [employeeName, setEmployeeName] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");

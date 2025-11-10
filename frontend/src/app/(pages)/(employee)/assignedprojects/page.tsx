@@ -103,7 +103,7 @@ export default function AssignedProjects() {
     return grouped;
   }, [tasks]);
 
-  // Build filtered project list
+  // filtered project list
   const filteredProjects = useMemo(() => {
     const q = debouncedQuery;
 

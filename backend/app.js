@@ -5,7 +5,6 @@ import cookieParser from "cookie-parser";
 import userRoutes from './routes/user.routes.js';
 import taskRoutes from './routes/task.routes.js';
 import projectRoutes from "./routes/project.routes.js";
-import attendanceRoutes from './routes/attendance.route.js';
 import taskDetailRoutes from "./routes/taskDetail.routes.js"; 
 import cors from 'cors';
 
@@ -40,7 +39,6 @@ app.use((req, res, next) => {
 app.use("/api/users", userRoutes);
 app.use("/api", taskRoutes);
 app.use("/api/projects", projectRoutes);
-app.use("/api/attendance", attendanceRoutes);
 app.use("/api/taskDetail", taskDetailRoutes);
 
 const PORT = process.env.PORT || 8080;

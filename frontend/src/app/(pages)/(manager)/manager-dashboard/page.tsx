@@ -13,7 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTask } from "@/context/TaskContext"; 
+import { useTask } from "@/context/TaskContext";
 
 // Debounce hook
 function useDebounce<T>(value: T, delay = 300): T {
@@ -170,8 +170,7 @@ export default function ManagerDashboard() {
       </div>
     );
 
-  if (error)
-    return <div className="p-6 text-center text-red-500">{error}</div>;
+  if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
 
   // Task summary
   let completedCount = 0;
@@ -256,55 +255,59 @@ export default function ManagerDashboard() {
           </div>
         </CardHeader>
 
-       {/* Summary Cards */}
-<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 mb-4 mx-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 mb-4 mx-6">
+          {/* Total Tasks */}
+          <div className="relative bg-white rounded-xl shadow p-4 border-t-4 border-gray-400">
+            <div className="absolute top-3 right-3 bg-gray-100 p-2 rounded-full">
+              <ListTodo className="h-5 w-5 text-gray-600" />
+            </div>
+            <h2 className="text-sm text-gray-500">Total Tasks</h2>
+            <p className="text-2xl font-bold text-gray-900">{totalTasks}</p>
+          </div>
 
-  {/* Total Tasks */}
-  <div className="relative bg-white rounded-xl shadow p-4 border-t-4 border-gray-400">
-    <div className="absolute top-3 right-3 bg-gray-100 p-2 rounded-full">
-      <ListTodo className="h-5 w-5 text-gray-600" />
-    </div>
-    <h2 className="text-sm text-gray-500">Total Tasks</h2>
-    <p className="text-2xl font-bold text-gray-900">{totalTasks}</p>
-  </div>
-  
-  {/* Completed */}
-  <div className="relative bg-white rounded-xl shadow p-4 border-t-4 border-green-500">
-    <div className="absolute top-3 right-3 bg-green-100 p-2 rounded-full">
-      <CheckCircle className="h-5 w-5 text-green-600" />
-    </div>
-    <h2 className="text-sm text-gray-500">Completed</h2>
-    <p className="text-2xl font-bold text-green-600">{completedCount}</p>
-  </div>
+          {/* Completed */}
+          <div className="relative bg-white rounded-xl shadow p-4 border-t-4 border-green-500">
+            <div className="absolute top-3 right-3 bg-green-100 p-2 rounded-full">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+            </div>
+            <h2 className="text-sm text-gray-500">Completed</h2>
+            <p className="text-2xl font-bold text-green-600">
+              {completedCount}
+            </p>
+          </div>
 
-  {/* In Progress */}
-  <div className="relative bg-white rounded-xl shadow p-4 border-t-4 border-orange-500">
-    <div className="absolute top-3 right-3 bg-orange-100 p-2 rounded-full">
-      <Clock className="h-5 w-5 text-orange-500" />
-    </div>
-    <h2 className="text-sm text-gray-500">In Progress</h2>
-    <p className="text-2xl font-bold text-orange-600">{inProgressCount}</p>
-  </div>
+          {/* In Progress */}
+          <div className="relative bg-white rounded-xl shadow p-4 border-t-4 border-orange-500">
+            <div className="absolute top-3 right-3 bg-orange-100 p-2 rounded-full">
+              <Clock className="h-5 w-5 text-orange-500" />
+            </div>
+            <h2 className="text-sm text-gray-500">In Progress</h2>
+            <p className="text-2xl font-bold text-orange-600">
+              {inProgressCount}
+            </p>
+          </div>
 
-  {/* Pending */}
-  <div className="relative bg-white rounded-xl shadow p-4 border-t-4 border-yellow-500">
-    <div className="absolute top-3 right-3 bg-yellow-100 p-2 rounded-full">
-      <Hourglass className="h-5 w-5 text-yellow-600" />
-    </div>
-    <h2 className="text-sm font-medium text-gray-500">Pending</h2>
-    <p className="text-2xl font-bold text-yellow-600 mt-1">{pendingCount}</p>
-  </div>
+          {/* Pending */}
+          <div className="relative bg-white rounded-xl shadow p-4 border-t-4 border-yellow-500">
+            <div className="absolute top-3 right-3 bg-yellow-100 p-2 rounded-full">
+              <Hourglass className="h-5 w-5 text-yellow-600" />
+            </div>
+            <h2 className="text-sm font-medium text-gray-500">Pending</h2>
+            <p className="text-2xl font-bold text-yellow-600 mt-1">
+              {pendingCount}
+            </p>
+          </div>
 
-  {/* Team Members */}
-  <div className="relative bg-white rounded-xl shadow p-4 border-t-4 border-blue-500">
-    <div className="absolute top-3 right-3 bg-blue-100 p-2 rounded-full">
-      <Users className="h-5 w-5 text-blue-600" />
-    </div>
-    <h2 className="text-sm text-gray-500">Team Members</h2>
-    <p className="text-2xl font-bold text-blue-600">{teamMembers}</p>
-  </div>
-
-</div>
+          {/* Team Members */}
+          <div className="relative bg-white rounded-xl shadow p-4 border-t-4 border-blue-500">
+            <div className="absolute top-3 right-3 bg-blue-100 p-2 rounded-full">
+              <Users className="h-5 w-5 text-blue-600" />
+            </div>
+            <h2 className="text-sm text-gray-500">Team Members</h2>
+            <p className="text-2xl font-bold text-blue-600">{teamMembers}</p>
+          </div>
+        </div>
 
         {/* Employee Task List */}
         <CardContent className="space-y-4">
@@ -341,7 +344,8 @@ export default function ManagerDashboard() {
                         `/manager-dashboard/${tasksByEmployee[employee][0].userId}`
                       )
                     }
-className="w-full px-4 py-3 text-left flex flex-col md:flex-row justify-between items-start md:items-center hover:bg-gray-50 cursor-pointer"                  >
+                    className="w-full px-4 py-3 text-left flex flex-col md:flex-row justify-between items-start md:items-center hover:bg-gray-50 cursor-pointer"
+                  >
                     <div className="flex flex-col">
                       <span className="font-semibold text-gray-900 text-lg">
                         {employee}{" "}

@@ -58,8 +58,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Save in localStorage
       localStorage.setItem("user", JSON.stringify(loggedInUser));
       localStorage.setItem("token", token);
-
-      // Update React state so user is available immediately
       setUser(loggedInUser);
 
       router.push("/dashboard");

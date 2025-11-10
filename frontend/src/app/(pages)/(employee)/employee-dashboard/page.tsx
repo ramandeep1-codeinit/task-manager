@@ -116,7 +116,7 @@ export default function EmployeeDashboard() {
   });
 
   return (
-    <div className="p-4 md:p-1">
+    <div className="p-4 md:p-0">
       <AddTaskDialog
         open={openDialog}
         setOpen={setOpenDialog}

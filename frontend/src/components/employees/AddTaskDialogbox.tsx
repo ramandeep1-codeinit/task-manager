@@ -12,9 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
-import axios from "axios";
 import { notifyError } from "@/lib/toast";
-
+import { useProject } from "@/context/ProjectContext";
 
 export interface Task {
   _id?: string;
@@ -26,11 +25,6 @@ export interface Task {
   userName: string;
 }
 
-interface Project {
-  _id: string;
-  projectName: string;
-}
-
 interface Props {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -38,13 +32,12 @@ interface Props {
   onSubmit: (task: Task) => Promise<void>;
 }
 
-// Status options
 const STATUS_OPTIONS = ["pending", "in-progress", "completed"];
 
 export default function AddTaskDialog({ open, setOpen, initialData, onSubmit }: Props) {
   const { user } = useAuth();
+  const { projects, getProjects } = useProject();
 
-  const [projects, setProjects] = useState<Project[]>([]);
   const [formData, setFormData] = useState<Task>({
     userName: "",
     project: "",
@@ -61,7 +54,7 @@ export default function AddTaskDialog({ open, setOpen, initialData, onSubmit }: 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdowns when clicking outside
+  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -76,9 +69,10 @@ export default function AddTaskDialog({ open, setOpen, initialData, onSubmit }: 
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Initialize form data and fetch projects
+  // Load projects + fill form
   useEffect(() => {
     if (!open || !user) return;
+    getProjects(); //
 
     setFormData({
       _id: initialData?._id,
@@ -89,188 +83,174 @@ export default function AddTaskDialog({ open, setOpen, initialData, onSubmit }: 
       userId: initialData?.userId || user.id || "",
       role: initialData?.role || user.role || "",
     });
-
-    const fetchProjects = async () => {
-      try {
-        const res = await axios.get("http://localhost:8080/api/projects/all");
-        setProjects(res.data.data || res.data);
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-      }
-    };
-    fetchProjects();
   }, [open, initialData, user]);
 
   const handleChange = (name: keyof Task, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  if (!formData.project || !formData.taskDetail) {
-    notifyError("Please fill in all required fields");
-    return;
-  }
+    if (!formData.project || !formData.taskDetail) {
+      notifyError("Please fill in all required fields");
+      return;
+    }
 
-  if (!user) {
-    notifyError("User not found. Please log in again.");
-    return;
-  }
+    if (!user) {
+      notifyError("User not found. Please log in again.");
+      return;
+    }
 
-  try {
-  await onSubmit(formData);
-  setOpen(false);
-} catch (error) {
-  console.error("Error saving task:", error);
-  notifyError("Failed to save task. Please try again.");
-}
-
-};
-
+    try {
+      await onSubmit(formData);
+      setOpen(false);
+    } catch (error) {
+      console.error("Error saving task:", error);
+      notifyError("Failed to save task. Please try again.");
+    }
+  };
 
   const filteredProjects = projects.filter((p) =>
     p.projectName.toLowerCase().includes(projectSearchQuery.toLowerCase())
   );
 
   return (
-   <Dialog open={open} onOpenChange={setOpen}>
-  <DialogContent className="sm:max-w-lg rounded-2xl p-6">
-    <DialogHeader>
-      <DialogTitle className="text-xl font-semibold">
-        {initialData ? "Edit Task" : "Add New Task"}
-      </DialogTitle>
-      <DialogDescription className="text-gray-500">
-        {initialData ? "Update the task details." : "Select a project and enter task information below."}
-      </DialogDescription>
-    </DialogHeader>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="sm:max-w-lg rounded-2xl p-6">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">
+            {initialData ? "Edit Task" : "Add New Task"}
+          </DialogTitle>
+          <DialogDescription className="text-gray-500">
+            {initialData
+              ? "Update the task details."
+              : "Select a project and enter task information below."}
+          </DialogDescription>
+        </DialogHeader>
 
-    <div className="space-y-6 mt-4">
+        <div className="space-y-6 mt-4">
+          {/* Project Dropdown */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right pt-2">Project</Label>
 
-      {/* Project Dropdown */}
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right pt-2">Project</Label>
-
-        <div className="col-span-3 relative" ref={dropdownRef}>
-          <div
-            className="w-full border border-gray-300 bg-gray-50 rounded-xl px-3 py-2 cursor-pointer flex items-center justify-between hover:bg-gray-100 transition"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-          >
-            <span className="text-gray-800">
-              {formData.project || "-- Select Project --"}
-            </span>
-            <svg
-              className={`w-4 h-4 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-
-          {dropdownOpen && (
-            <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto mt-2 z-30 animate-in fade-in">
-              <div className="px-3 py-2">
-                <input
-                  type="text"
-                  placeholder="Search project..."
-                  value={projectSearchQuery}
-                  onChange={(e) => setProjectSearchQuery(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm"
-                  autoFocus
-                />
+            <div className="col-span-3 relative" ref={dropdownRef}>
+              <div
+                className="w-full border border-gray-300 bg-gray-50 rounded-xl px-3 py-2 cursor-pointer flex items-center justify-between hover:bg-gray-100 transition"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                <span className="text-gray-800">
+                  {formData.project || "-- Select Project --"}
+                </span>
+                <svg
+                  className={`w-4 h-4 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </div>
 
-              {filteredProjects.length > 0 ? (
-                filteredProjects.map((p) => (
-                  <div
-                    key={p._id}
-                    className="px-3 py-2 cursor-pointer hover:bg-gray-100 transition text-gray-800"
-                    onClick={() => {
-                      handleChange("project", p.projectName);
-                      setDropdownOpen(false);
-                      setProjectSearchQuery("");
-                    }}
-                  >
-                    {p.projectName}
+              {dropdownOpen && (
+                <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto mt-2 z-30">
+                  <div className="px-3 py-2">
+                    <input
+                      type="text"
+                      placeholder="Search project..."
+                      value={projectSearchQuery}
+                      onChange={(e) => setProjectSearchQuery(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm"
+                      autoFocus
+                    />
                   </div>
-                ))
-              ) : (
-                <div className="px-3 py-3 text-gray-500 text-sm">No projects found</div>
+
+                  {filteredProjects.length > 0 ? (
+                    filteredProjects.map((p) => (
+                      <div
+                        key={p._id}
+                        className="px-3 py-2 cursor-pointer hover:bg-gray-100 transition text-gray-800"
+                        onClick={() => {
+                          handleChange("project", p.projectName);
+                          setDropdownOpen(false);
+                          setProjectSearchQuery("");
+                        }}
+                      >
+                        {p.projectName}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-3 py-3 text-gray-500 text-sm">No projects found</div>
+                  )}
+                </div>
               )}
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Task Description */}
-      <div className="grid grid-cols-4 gap-4">
-        <Label className="text-right pt-2">Description</Label>
-
-        <textarea
-          value={formData.taskDetail}
-          onChange={(e) => handleChange("taskDetail", e.target.value)}
-          className="col-span-3 border border-gray-300 rounded-xl px-3 py-2 bg-gray-50 focus:bg-white transition resize-none"
-          rows={4}
-          placeholder="Enter task description"
-        />
-      </div>
-
-      {/* Status Dropdown */}
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Status</Label>
-
-        <div className="col-span-3 relative" ref={statusDropdownRef}>
-          <div
-            className="w-full border border-gray-300 bg-gray-50 rounded-xl px-3 py-2 cursor-pointer flex items-center justify-between hover:bg-gray-100 transition"
-            onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-          >
-            <span className="text-gray-800">
-              {formData.status.charAt(0).toUpperCase() + formData.status.slice(1)}
-            </span>
-            <svg
-              className={`w-4 h-4 transition-transform duration-200 ${statusDropdownOpen ? "rotate-180" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
           </div>
 
-          {statusDropdownOpen && (
-            <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-xl shadow-lg mt-2 z-30 animate-in fade-in">
-              {STATUS_OPTIONS.map((status) => (
-                <div
-                  key={status}
-                  className="px-3 py-2 cursor-pointer hover:bg-gray-100 transition text-gray-800"
-                  onClick={() => {
-                    handleChange("status", status);
-                    setStatusDropdownOpen(false);
-                  }}
+          {/* Task Description */}
+          <div className="grid grid-cols-4 gap-4">
+            <Label className="text-right pt-2">Description</Label>
+
+            <textarea
+              value={formData.taskDetail}
+              onChange={(e) => handleChange("taskDetail", e.target.value)}
+              className="col-span-3 border border-gray-300 rounded-xl px-3 py-2 bg-gray-50 focus:bg-white transition resize-none"
+              rows={4}
+              placeholder="Enter task description"
+            />
+          </div>
+
+          {/* Status Dropdown */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Status</Label>
+
+            <div className="col-span-3 relative" ref={statusDropdownRef}>
+              <div
+                className="w-full border border-gray-300 bg-gray-50 rounded-xl px-3 py-2 cursor-pointer flex items-center justify-between hover:bg-gray-100 transition"
+                onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+              >
+                <span className="text-gray-800">
+                  {formData.status.charAt(0).toUpperCase() + formData.status.slice(1)}
+                </span>
+                <svg
+                  className={`w-4 h-4 transition-transform duration-200 ${statusDropdownOpen ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+
+              {statusDropdownOpen && (
+                <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-xl shadow-lg mt-2 z-30">
+                  {STATUS_OPTIONS.map((status) => (
+                    <div
+                      key={status}
+                      className="px-3 py-2 cursor-pointer hover:bg-gray-100 transition text-gray-800"
+                      onClick={() => {
+                        handleChange("status", status);
+                        setStatusDropdownOpen(false);
+                      }}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          )}
+          </div>
         </div>
-      </div>
-    </div>
 
-    {/* Footer Button */}
-    <DialogFooter className="mt-6">
-      <Button
-        onClick={handleSubmit}
-        className="bg-black hover:bg-gray-900 text-white w-full rounded-xl py-2 cursor-pointer"
-      >
-        {initialData ? "Update Task" : "Save Task"}
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
-
+        <DialogFooter className="mt-6">
+          <Button
+            onClick={handleSubmit}
+            className="bg-black hover:bg-gray-900 text-white w-full rounded-xl py-2 cursor-pointer"
+          >
+            {initialData ? "Update Task" : "Save Task"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

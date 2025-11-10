@@ -15,44 +15,34 @@ export default function EmployeeSidebar({}: EmployeeSidebarProps) {
   const { user, logout } = useAuth();
   const { setSelectedTask } = useTask();
 
-  // Determine active section based on pathname
   const getSectionFromPath = (path: string) => {
     if (path.includes("assignedprojects")) return "assignedProjects";
-    if (path.includes("attendance")) return "attendance";
     if (path.includes("employee-dashboard")) return "employee-dashboard";
     return "employee-dashboard";
   };
 
   const [active, setActive] = useState<
-    "employee-dashboard" | "assignedProjects" | "attendance"
+    "employee-dashboard" | "assignedProjects"
   >(getSectionFromPath(pathname));
 
-  // Map section keys to routes
-  const sectionToRoute = (
-    section: "employee-dashboard" | "assignedProjects" | "attendance"
-  ) => {
+  const sectionToRoute = (section: "employee-dashboard" | "assignedProjects") => {
     switch (section) {
       case "employee-dashboard":
         return "/employee-dashboard";
       case "assignedProjects":
         return "/assignedprojects";
-      case "attendance":
-        return "/attendance";
       default:
         return "/employee-dashboard";
     }
   };
 
-  const handleClick = (
-    section: "employee-dashboard" | "assignedProjects" | "attendance"
-  ) => {
+  const handleClick = (section: "employee-dashboard" | "assignedProjects") => {
     setActive(section);
     setSelectedTask?.(null);
     localStorage.setItem("employeeActiveSection", section);
     router.push(sectionToRoute(section));
   };
 
-  // Logout
   const handleLogout = () => {
     logout();
     router.push("/login");
@@ -62,7 +52,6 @@ export default function EmployeeSidebar({}: EmployeeSidebarProps) {
     if (!user?.name && !user?.email) return "NA";
 
     const name = user.name || user.email;
-
     const words = name.split(" ").filter(Boolean);
 
     if (words.length === 1) {
@@ -75,16 +64,11 @@ export default function EmployeeSidebar({}: EmployeeSidebarProps) {
   const sections = useMemo(
     () => [
       { key: "employee-dashboard", label: "Dashboard", icon: LayoutDashboard },
-      {
-        key: "assignedProjects",
-        label: "Assigned Projects",
-        icon: ClipboardList,
-      },
-      { key: "attendance", label: "Attendance", icon: Clock },
+      { key: "assignedProjects", label: "Assigned Projects", icon: ClipboardList }
     ],
     []
   );
-  
+
   return (
     <aside className="w-64 h-screen bg-gray-50 flex flex-col justify-between border-r border-gray-200 shadow-sm">
       <div className="p-4">
@@ -104,6 +88,7 @@ export default function EmployeeSidebar({}: EmployeeSidebarProps) {
           {sections.map((section) => {
             const Icon = section.icon;
             const isActive = active === section.key;
+
             return (
               <button
                 key={section.key}
@@ -128,7 +113,7 @@ export default function EmployeeSidebar({}: EmployeeSidebarProps) {
           className="w-full flex items-center justify-center gap-2 px-2 py-1 text-sm h-8 hover:bg-gray-100 hover:text-accent-foreground cursor-pointer"
           onClick={handleLogout}
         >
-          <LogOut className="h-4 w-4 " />
+          <LogOut className="h-4 w-4" />
           Logout
         </Button>
       </div>

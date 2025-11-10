@@ -3,7 +3,7 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken';
 
-// ---------------- Register User ----------------
+// Register User
 export const registerUser = async (req, res) => {
   try {
     // Validate input
@@ -65,7 +65,7 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// ---------------- Login User ----------------
+// Login User
 export const loginUser = async (req, res) => {
   try {
     // Validate input
@@ -108,7 +108,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// ---------------- Get All Users ----------------
+// Get All Users
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password'); // exclude passwords
@@ -119,7 +119,7 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// ---------------- Delete User ----------------
+// Delete User
 export const deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
@@ -131,7 +131,7 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-// ---------------- Update User ----------------
+// Update User
 export const updateUser = async (req, res) => {
   try {
     const { userName, email, password } = req.body;
@@ -150,7 +150,7 @@ export const updateUser = async (req, res) => {
     await user.save();
 
     const responseUser = user.toObject();
-    delete responseUser.password; // do not send password back
+    delete responseUser.password;
 
     res.status(200).json({ message: "User updated successfully", data: responseUser });
   } catch (err) {

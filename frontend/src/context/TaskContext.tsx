@@ -22,7 +22,7 @@ export interface Task {
   updatedAt?: string;
 }
 
-// Context interface FIXED added getTasksByProject
+// getTasksByProject interface
 interface TaskContextType {
   tasks: Task[];
   selectedTask: Task | null;
