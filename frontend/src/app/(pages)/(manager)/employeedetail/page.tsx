@@ -262,6 +262,7 @@ export default function AddEmployeeSection() {
             type={form.showPassword ? "text" : "password"}
             value={form.password}
             onChange={(e) => handleInputChange("password", e.target.value)}
+            autoComplete={editingEmployee ? "current-password" : "new-password"} 
           />
           <button
             type="button"
